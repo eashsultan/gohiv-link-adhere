@@ -1,101 +1,296 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Activity,
+  AlertCircle,
   ArrowRight,
   Baby,
   Bell,
   Building2,
+  Calendar,
   Check,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   Clock,
   Copy,
   ExternalLink,
+  Flame,
+  Globe2,
   HeartHandshake,
   HeartPulse,
+  Info,
   Lock,
   Mail,
   MapPin,
   Menu,
   MessageSquare,
+  Minus,
   Phone,
+  Play,
+  Pause,
+  Plus,
   Radio,
   RefreshCw,
   Send,
+  Shield,
   ShieldCheck,
+  Sliders,
   Smartphone,
   Sparkles,
+  Star,
   Users,
   Volume2,
+  Wifi,
   WifiOff,
   X,
   Zap,
 } from "lucide-react";
 
-// --- GOMBE STATE LOCAL GOVERNMENT AREAS ---
-const GOMBE_LGAS = [
-  "Akko",
-  "Balanga",
-  "Billiri",
-  "Dukku",
-  "Funakaye",
-  "Gombe",
-  "Kaltungo",
-  "Kwami",
-  "Nafada",
-  "Shongom",
-  "Yamaltu/Deba",
-];
+// --- GOMBE STATE LOCAL GOVERNMENT AREAS & CLINICAL PILOT DATA ---
+interface LgaData {
+  name: string;
+  facilities: string[];
+  phcCount: number;
+  targetUsers: number;
+  chewWorkers: number;
+  linkageTarget: string;
+  terrain: string;
+}
 
-// --- CONTENT STRATEGY & LOCALIZATION DATA ---
-const CONTENT = {
-  en: {
-    heroBadge: "Unified HIV Care Continuum · Gombe State Pilot",
-    heroTitle: "Bridging the HIV Care Continuum in Gombe State.",
-    heroSubtitle:
-      "An offline-first, privacy-centric platform connecting at-risk individuals to testing, care, and daily adherence support—no smartphone or internet required.",
-    ctaPrimary: "View Core Features",
-    ctaSecondary: "Partner With Us",
-    ussdHeadline: "USSD & Feature Phone Simulator",
-    ussdSub: "Dial *384*44# from any phone in Gombe",
-    ussdScreenGreeting: "Maraba / Welcome to GoHIV Gombe:",
-    ussdOption1: "1. Anonymous Risk Assessment",
-    ussdOption2: "2. Locate Nearest ART Center",
-    ussdOption3: "3. Meds Refill & Daily Support",
-    ussdOption4: "4. Caregiver / Paediatric Mode",
+const GOMBE_LGAS_DATA: Record<string, LgaData> = {
+  Gombe: {
+    name: "Gombe (Metropolitan)",
+    facilities: [
+      "State Specialist Hospital Gombe (ART Centre)",
+      "Urban Maternity Centre Gombe",
+      "Federal Teaching Hospital Gombe (FTHG)",
+      "Pantami Primary Health Centre",
+    ],
+    phcCount: 18,
+    targetUsers: 1450,
+    chewWorkers: 42,
+    linkageTarget: "94.5%",
+    terrain: "Urban / High Density",
   },
-  ha: {
-    heroBadge: "Hadaddiyar Hanyar Kula da Cutar Kanjamau · Jihar Gombe",
-    heroTitle: "Hada Hanyoyin Kula da Kanjamau a Jihar Gombe.",
-    heroSubtitle:
-      "Tsari na zamani mai aiki ba tare da intanet ko wayar zamani ba, yana hada masu bukata da gwaji, magani, da bibiyar shan kwayoyin yau da kullum a asirce.",
-    ctaPrimary: "Duba Muhimman Ayyuka",
-    ctaSecondary: "Yi Hadin Gwiwa da Mu",
-    ussdHeadline: "Gwada USSD a Wayar Hannu",
-    ussdSub: "Kira *384*44# a kowacce irin waya a Gombe",
-    ussdScreenGreeting: "Maraba da zuwa GoHIV Jihar Gombe:",
-    ussdOption1: "1. Binciken Hatsarin Kamuwa a Asirce",
-    ussdOption2: "2. Gano Cibiyar Karbar Magani mafi kusa",
-    ussdOption3: "3. Taimakon Shan Magani na Kullum",
-    ussdOption4: "4. Yanayin Kula da Yara (Caregiver Mode)",
+  Akko: {
+    name: "Akko LGA",
+    facilities: [
+      "Kumo General Hospital",
+      "Pindiga Primary Health Centre",
+      "Kashere Health Centre",
+      "Tula Comprehensive Health Post",
+    ],
+    phcCount: 24,
+    targetUsers: 680,
+    chewWorkers: 28,
+    linkageTarget: "91.8%",
+    terrain: "Semi-Urban / Agricultural",
+  },
+  "Yamaltu/Deba": {
+    name: "Yamaltu/Deba LGA",
+    facilities: [
+      "Deba Cottage Hospital",
+      "Dadin Kowa Model PHC",
+      "Zambuk Health Centre",
+      "Kuri Primary Health Clinic",
+    ],
+    phcCount: 22,
+    targetUsers: 550,
+    chewWorkers: 24,
+    linkageTarget: "90.4%",
+    terrain: "Riverine / Agrarian",
+  },
+  Balanga: {
+    name: "Balanga LGA",
+    facilities: [
+      "Talasse Cottage Hospital",
+      "Gelengu Comprehensive Health Centre",
+      "Cham Maternal Health Post",
+    ],
+    phcCount: 16,
+    targetUsers: 380,
+    chewWorkers: 18,
+    linkageTarget: "89.2%",
+    terrain: "Hilly / Dispersed Settlements",
+  },
+  Billiri: {
+    name: "Billiri LGA",
+    facilities: [
+      "Billiri General Hospital (ART Hub)",
+      "Todi PHC Clinic",
+      "Tangale Health Outreach Post",
+    ],
+    phcCount: 14,
+    targetUsers: 420,
+    chewWorkers: 20,
+    linkageTarget: "92.0%",
+    terrain: "Semi-Urban Highlands",
+  },
+  Dukku: {
+    name: "Dukku LGA",
+    facilities: [
+      "Dukku General Hospital",
+      "Malala Primary Healthcare Centre",
+      "Gombe Abba Rural Clinic",
+    ],
+    phcCount: 19,
+    targetUsers: 410,
+    chewWorkers: 22,
+    linkageTarget: "88.5%",
+    terrain: "Northern Arid / Low Connectivity",
+  },
+  Funakaye: {
+    name: "Funakaye LGA",
+    facilities: [
+      "Bajoga General Hospital",
+      "Ashaka Cement Health Centre",
+      "Bogo Model PHC",
+    ],
+    phcCount: 15,
+    targetUsers: 360,
+    chewWorkers: 19,
+    linkageTarget: "90.1%",
+    terrain: "Industrial / Savannah Border",
+  },
+  Kaltungo: {
+    name: "Kaltungo LGA",
+    facilities: [
+      "Kaltungo General Hospital (Major ART Hub)",
+      "Awak Model Health Post",
+      "Kamo Primary Care Centre",
+    ],
+    phcCount: 17,
+    targetUsers: 450,
+    chewWorkers: 22,
+    linkageTarget: "93.1%",
+    terrain: "Hilly / Cultural Corridor",
+  },
+  Kwami: {
+    name: "Kwami LGA",
+    facilities: [
+      "Mallam Sidi Cottage Hospital",
+      "Kwami Central Primary Healthcare Post",
+      "Boise Rural Health Centre",
+    ],
+    phcCount: 13,
+    targetUsers: 290,
+    chewWorkers: 15,
+    linkageTarget: "88.9%",
+    terrain: "Rural Savannah",
+  },
+  Nafada: {
+    name: "Nafada LGA",
+    facilities: [
+      "Nafada Comprehensive Health Centre",
+      "Birin Bole Health Post",
+      "Guduku Outreach Station",
+    ],
+    phcCount: 11,
+    targetUsers: 260,
+    chewWorkers: 14,
+    linkageTarget: "87.5%",
+    terrain: "River Basin / Arid Remote",
+  },
+  Shongom: {
+    name: "Shongom LGA",
+    facilities: [
+      "Filiya Cottage Hospital",
+      "Lala Model Primary Healthcare Centre",
+      "Gundale Rural Post",
+    ],
+    phcCount: 12,
+    targetUsers: 250,
+    chewWorkers: 14,
+    linkageTarget: "89.0%",
+    terrain: "Southern Valley / Border Corridor",
   },
 };
 
+const GOMBE_LGA_KEYS = Object.keys(GOMBE_LGAS_DATA);
+
+// Toast notification interface
+interface ToastMessage {
+  id: number;
+  title: string;
+  description: string;
+  type: "success" | "info" | "warning";
+}
+
 export default function GoHIVLandingPage() {
+  // Navigation & Language
   const [lang, setLang] = useState<"en" | "ha">("en");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
-  const [activeLga, setActiveLga] = useState("Gombe");
+
+  // Toast Notification System
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const showToast = (title: string, description: string, type: "success" | "info" | "warning" = "success") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, title, description, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
+
+  // ---------------------------------------------------------------------------
+  // 1. HERO SECTION: INTERACTIVE DUAL SIMULATOR (USSD vs SMARTPHONE DASHBOARD)
+  // ---------------------------------------------------------------------------
+  const [activeDeviceView, setActiveDeviceView] = useState<"ussd" | "smart">("ussd");
+
+  // USSD Interactive Machine
+  // Screens: 'dialpad' | 'mainMenu' | 'riskQ1' | 'riskResult' | 'clinicSelect' | 'clinicResult' | 'medsConfirm' | 'caregiver'
+  const [ussdScreen, setUssdScreen] = useState<string>("dialpad");
+  const [ussdDialInput, setUssdDialInput] = useState("*384*44#");
+  const [ussdSessionActive, setUssdSessionActive] = useState(false);
+  const [generatedVoucher, setGeneratedVoucher] = useState("GHV-GMB-9921");
+
+  // Smartphone / CHW Simulation State
+  const [isSimulatedOffline, setIsSimulatedOffline] = useState(false);
+  const [intakeLoggedToday, setIntakeLoggedToday] = useState(false);
+  const [queuedSyncRecords, setQueuedSyncRecords] = useState(3);
+  const [syncingAnimation, setSyncingAnimation] = useState(false);
+
+  // ---------------------------------------------------------------------------
+  // 2. CORE MODULES: INTERACTIVE TABBED PLAYGROUND
+  // ---------------------------------------------------------------------------
+  const [activeModuleTab, setActiveModuleTab] = useState<"testing" | "adherence" | "caregiver">("testing");
+
+  // Adherence Live SMS Generator
+  const [smsReminderTime, setSmsReminderTime] = useState("08:00 AM");
+  const [smsLang, setSmsLang] = useState<"ha" | "en">("ha");
+  const [simulatedSmsBanner, setSimulatedSmsBanner] = useState<string | null>(null);
+
+  // Caregiver Mode Interactive Paediatric Schedule
+  const [childrenList, setChildrenList] = useState([
+    { id: 1, name: "Amina (4 yrs)", regimen: "DTG 10mg Paediatric Dosing", morningTaken: true, eveningTaken: false },
+    { id: 2, name: "Ibrahim (7 yrs)", regimen: "TLD Junior Dispersible Tab", morningTaken: false, eveningTaken: false },
+  ]);
+
+  // ---------------------------------------------------------------------------
+  // 3. WHY GOHIV? INTERACTIVE PLAYGROUNDS
+  // ---------------------------------------------------------------------------
+  // Playground 1: NDPR Token Hasher
+  const [demoPhoneInput, setDemoPhoneInput] = useState("0803 754 4148");
+  const [hashedTokenOutput, setHashedTokenOutput] = useState("GHV-GMB-8419-SEC");
+
+  // Playground 2: Interactive Hausa Voice-Note Player
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [audioPlaybackProgress, setAudioPlaybackProgress] = useState(0);
+  const audioIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ---------------------------------------------------------------------------
+  // 4. PILOT 2027: INTERACTIVE IMPACT CALCULATOR & LGA SELECTOR
+  // ---------------------------------------------------------------------------
+  const [activeLgaKey, setActiveLgaKey] = useState<string>("Gombe");
+  const [pilotUserScale, setPilotUserScale] = useState<number>(5000);
+
+  // ---------------------------------------------------------------------------
+  // 5. STAKEHOLDER DEMO MODAL FORM
+  // ---------------------------------------------------------------------------
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
-
-  // Interactive USSD Simulator State
-  const [ussdStep, setUssdStep] = useState<"idle" | "menu" | "option1" | "option2" | "option3">("menu");
-  const [ussdInput, setUssdInput] = useState("");
-
-  // Demo / Partner Form State
   const [formData, setFormData] = useState({
     name: "",
     org: "GOMSACA",
@@ -106,46 +301,174 @@ export default function GoHIVLandingPage() {
   });
   const [formSubmitted, setFormSubmitted] = useState(false);
 
+  // Handle USSD Keypad Press
+  const handleKeypadPress = (val: string) => {
+    if (!ussdSessionActive) {
+      setUssdDialInput((prev) => prev + val);
+    } else {
+      // In active session, digits 1-4 route to menus
+      if (ussdScreen === "mainMenu") {
+        if (val === "1") setUssdScreen("riskQ1");
+        else if (val === "2") setUssdScreen("clinicSelect");
+        else if (val === "3") setUssdScreen("medsConfirm");
+        else if (val === "4") setUssdScreen("caregiver");
+      } else if (ussdScreen === "riskQ1") {
+        if (val === "1" || val === "2") setUssdScreen("riskResult");
+      } else if (ussdScreen === "clinicSelect") {
+        if (val === "1" || val === "2" || val === "3") setUssdScreen("clinicResult");
+      }
+    }
+  };
+
+  const handleDialSend = () => {
+    if (!ussdSessionActive) {
+      setUssdSessionActive(true);
+      setUssdScreen("mainMenu");
+      showToast("USSD Connected", "Dialed *384*44# via simulated 2G GSM cellular gateway", "info");
+    } else {
+      // Confirm or back
+      setUssdScreen("mainMenu");
+    }
+  };
+
+  const handleEndUssd = () => {
+    setUssdSessionActive(false);
+    setUssdScreen("dialpad");
+    showToast("Session Ended", "USSD session terminated safely. Zero airtime deducted.", "info");
+  };
+
+  // Trigger Live SMS Demonstration
+  const handleTriggerLiveSms = () => {
+    const text =
+      smsLang === "ha"
+        ? "GoHIV: Barka da safiya! Lokacin shan maganinku ya yi. Amsa da 1 (Na sha) ko 2 (Zan sha anjima). Kyauta ne!"
+        : "GoHIV: Good morning! Time for your daily wellness dose. Reply 1 (Taken) or 2 (Will take later). Toll-Free!";
+    setSimulatedSmsBanner(text);
+    showToast("Live SMS Received", "Simulated GSM delivery for " + smsReminderTime, "success");
+    setTimeout(() => {
+      setSimulatedSmsBanner(null);
+    }, 7000);
+  };
+
+  // Audio simulator loop
+  useEffect(() => {
+    if (isPlayingAudio) {
+      audioIntervalRef.current = setInterval(() => {
+        setAudioPlaybackProgress((prev) => {
+          if (prev >= 100) {
+            setIsPlayingAudio(false);
+            return 0;
+          }
+          return prev + 5;
+        });
+      }, 500);
+    } else if (audioIntervalRef.current) {
+      clearInterval(audioIntervalRef.current);
+    }
+    return () => {
+      if (audioIntervalRef.current) clearInterval(audioIntervalRef.current);
+    };
+  }, [isPlayingAudio]);
+
+  // Handle Token Hash Simulation
+  const handleGenerateHash = () => {
+    const randomHex = Math.floor(1000 + Math.random() * 9000);
+    const mockHash = `GHV-${activeLgaKey.substring(0, 3).toUpperCase()}-${randomHex}-NDPR`;
+    setHashedTokenOutput(mockHash);
+    showToast("Cryptographic Token Generated", `Mapped ${demoPhoneInput} to anonymous salt token ${mockHash}`, "success");
+  };
+
+  // Handle Manual Sync
+  const handleTriggerSync = () => {
+    setSyncingAnimation(true);
+    setTimeout(() => {
+      setQueuedSyncRecords(0);
+      setSyncingAnimation(false);
+      showToast("Offline Queue Synced", "All pending client check-ins safely committed to state server", "success");
+    }, 1500);
+  };
+
   // Copy helper
   const handleCopy = (text: string, type: "email" | "phone") => {
     navigator.clipboard?.writeText(text);
     if (type === "email") {
       setCopiedEmail(true);
-      setTimeout(() => setCopiedEmail(false), 2200);
+      setTimeout(() => setCopiedEmail(false), 2000);
     } else {
       setCopiedPhone(true);
-      setTimeout(() => setCopiedPhone(false), 2200);
+      setTimeout(() => setCopiedPhone(false), 2000);
     }
+    showToast("Copied to Clipboard", text, "info");
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormSubmitted(true);
-    setTimeout(() => {
-      // simulated save
-    }, 1000);
+    showToast("Request Submitted", `Partnership expression received for ${formData.org}`, "success");
   };
 
-  // Close modals on Esc key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setIsDemoModalOpen(false);
-        setMobileMenuOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  const t = CONTENT[lang];
+  const currentLga = GOMBE_LGAS_DATA[activeLgaKey] || GOMBE_LGAS_DATA["Gombe"];
 
   return (
     <div className="relative min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-amber-100 selection:text-blue-950">
       {/* =========================================================================
+          FLOATING TOAST NOTIFICATION STACK
+      ========================================================================= */}
+      <aside aria-label="Notifications" className="fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`pointer-events-auto flex items-start gap-3 p-3.5 rounded-2xl shadow-xl border text-xs backdrop-blur-md animate-in slide-in-from-top-3 fade-in duration-300 ${
+              toast.type === "success"
+                ? "bg-slate-900/95 text-white border-emerald-500/50"
+                : toast.type === "info"
+                ? "bg-blue-950/95 text-white border-blue-500/50"
+                : "bg-amber-950/95 text-white border-amber-500/50"
+            }`}
+          >
+            <div className="p-1 rounded-lg bg-white/10 shrink-0">
+              {toast.type === "success" ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              ) : (
+                <Info className="w-4 h-4 text-sky-400" />
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-white text-[13px]">{toast.title}</p>
+              <p className="text-slate-300 text-[11px] mt-0.5 leading-relaxed">{toast.description}</p>
+            </div>
+          </div>
+        ))}
+      </aside>
+
+      {/* Simulated Live GSM SMS Banner (slides down when triggered) */}
+      {simulatedSmsBanner && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 animate-in slide-in-from-top-6 duration-300">
+          <div className="p-4 rounded-2xl bg-slate-900 text-white shadow-2xl border-2 border-amber-400 flex items-start gap-3">
+            <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0 font-bold">
+              <MessageSquare className="w-4 h-4" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between text-[11px] text-amber-300 font-mono mb-1">
+                <span>SIMULATED GSM SMS · TOLL-FREE</span>
+                <span>Just Now</span>
+              </div>
+              <p className="text-xs font-medium text-slate-100 leading-snug">{simulatedSmsBanner}</p>
+            </div>
+            <button
+              onClick={() => setSimulatedSmsBanner(null)}
+              className="text-slate-400 hover:text-white p-1"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
           1. NAVIGATION BAR
       ========================================================================= */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
@@ -180,25 +503,25 @@ export default function GoHIVLandingPage() {
             <nav className="hidden md:flex items-center gap-8" aria-label="Main Navigation">
               <a
                 href="#features"
-                className="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors focus:text-blue-900"
+                className="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors"
               >
                 Features
               </a>
               <a
                 href="#how-it-works"
-                className="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors focus:text-blue-900"
+                className="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors"
               >
                 How it Works
               </a>
               <a
                 href="#pilot-program"
-                className="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors focus:text-blue-900"
+                className="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors"
               >
                 Pilot Program
               </a>
               <a
                 href="#contact"
-                className="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors focus:text-blue-900"
+                className="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors"
               >
                 Contact
               </a>
@@ -210,12 +533,15 @@ export default function GoHIVLandingPage() {
               <div
                 role="group"
                 aria-label="Language Selector"
-                className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-semibold"
+                className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-semibold"
               >
                 <button
                   type="button"
-                  onClick={() => setLang("en")}
-                  className={`px-2.5 py-1 rounded-md transition-all ${
+                  onClick={() => {
+                    setLang("en");
+                    showToast("Switched to English", "Landing page set to English mode", "info");
+                  }}
+                  className={`px-3 py-1 rounded-lg transition-all ${
                     lang === "en"
                       ? "bg-white text-blue-900 shadow-xs font-bold"
                       : "text-slate-500 hover:text-slate-800"
@@ -226,8 +552,11 @@ export default function GoHIVLandingPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setLang("ha")}
-                  className={`px-2.5 py-1 rounded-md transition-all ${
+                  onClick={() => {
+                    setLang("ha");
+                    showToast("An canza zuwa Hausa", "An canza harshen shafin zuwa Harshen Hausa", "info");
+                  }}
+                  className={`px-3 py-1 rounded-lg transition-all ${
                     lang === "ha"
                       ? "bg-white text-blue-900 shadow-xs font-bold"
                       : "text-slate-500 hover:text-slate-800"
@@ -258,16 +587,13 @@ export default function GoHIVLandingPage() {
                 type="button"
                 onClick={() => setLang(lang === "en" ? "ha" : "en")}
                 className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200"
-                aria-label="Toggle language"
               >
                 {lang.toUpperCase()}
               </button>
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                aria-expanded={mobileMenuOpen}
-                aria-label="Toggle navigation menu"
+                className="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
@@ -308,7 +634,7 @@ export default function GoHIVLandingPage() {
                 Contact
               </a>
             </nav>
-            <div className="pt-2 border-t border-slate-100 flex flex-col gap-3">
+            <div className="pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => {
@@ -326,20 +652,21 @@ export default function GoHIVLandingPage() {
       </header>
 
       {/* =========================================================================
-          2. HERO SECTION
+          2. HERO SECTION WITH INTERACTIVE DUAL SIMULATOR
       ========================================================================= */}
-      <section className="relative overflow-hidden pt-12 pb-20 md:pt-16 md:pb-28 lg:pt-20 bg-gradient-to-b from-white via-slate-50/50 to-sky-50/30">
-        {/* Subtle background tech accents */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 pointer-events-none opacity-40 blur-3xl -z-10 bg-gradient-to-r from-sky-200 via-blue-100 to-amber-100" />
-
+      <section className="relative overflow-hidden pt-10 pb-20 md:pt-14 md:pb-28 bg-gradient-to-b from-white via-slate-50 to-sky-50/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
             {/* Left Hero Column: Copy & Dual CTAs */}
-            <div className="lg:col-span-7 flex flex-col items-start text-left space-y-6">
+            <div className="lg:col-span-6 flex flex-col items-start text-left space-y-6">
               {/* Stakeholder & Pilot Badge */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-blue-950 text-xs sm:text-sm font-semibold shadow-xs">
-                <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
-                <span>{t.heroBadge}</span>
+                <span className="flex h-2.5 w-2.5 rounded-full bg-blue-600 animate-pulse" />
+                <span>
+                  {lang === "en"
+                    ? "Unified HIV Care Continuum · Gombe State Pilot"
+                    : "Hadaddiyar Hanyar Kula da Kanjamau · Jihar Gombe"}
+                </span>
               </div>
 
               {/* Main Headline */}
@@ -347,7 +674,7 @@ export default function GoHIVLandingPage() {
                 {lang === "en" ? (
                   <>
                     Bridging the{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-electric-blue">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-sky-600">
                       HIV Care Continuum
                     </span>{" "}
                     in Gombe State.
@@ -355,7 +682,7 @@ export default function GoHIVLandingPage() {
                 ) : (
                   <>
                     Hada Hanyoyin{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-electric-blue">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-sky-600">
                       Kula da Kanjamau
                     </span>{" "}
                     a Jihar Gombe.
@@ -365,7 +692,9 @@ export default function GoHIVLandingPage() {
 
               {/* Subheadline */}
               <p className="text-lg sm:text-xl text-slate-600 leading-relaxed max-w-2xl font-normal">
-                {t.heroSubtitle}
+                {lang === "en"
+                  ? "An offline-first, privacy-centric platform connecting at-risk individuals to testing, care, and daily adherence support—no smartphone or internet required."
+                  : "Tsari na zamani mai aiki ba tare da intanet ko wayar zamani ba, yana hada masu bukata da gwaji, magani, da bibiyar shan kwayoyin yau da kullum a asirce."}
               </p>
 
               {/* Dual Call-to-Action Buttons */}
@@ -373,9 +702,9 @@ export default function GoHIVLandingPage() {
                 {/* Primary CTA: Warm Gold */}
                 <a
                   href="#features"
-                  className="inline-flex items-center justify-center gap-3 px-7 py-3.5 rounded-xl font-bold text-base text-slate-950 bg-amber-400 hover:bg-amber-500 active:bg-amber-600 shadow-lg shadow-amber-400/25 hover:shadow-xl hover:shadow-amber-400/35 transition-all focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                  className="inline-flex items-center justify-center gap-3 px-7 py-3.5 rounded-xl font-bold text-base text-slate-950 bg-amber-400 hover:bg-amber-500 active:bg-amber-600 shadow-lg shadow-amber-400/25 hover:shadow-xl transition-all"
                 >
-                  <span>{t.ctaPrimary}</span>
+                  <span>{lang === "en" ? "View Core Features" : "Duba Muhimman Ayyuka"}</span>
                   <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                 </a>
 
@@ -383,11 +712,19 @@ export default function GoHIVLandingPage() {
                 <button
                   type="button"
                   onClick={() => setIsDemoModalOpen(true)}
-                  className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl font-bold text-base text-blue-950 bg-white hover:bg-slate-50 border-2 border-slate-300 hover:border-blue-700 transition-all focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                  className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl font-bold text-base text-blue-950 bg-white hover:bg-slate-50 border-2 border-slate-300 hover:border-blue-700 transition-all"
                 >
                   <HeartHandshake className="w-5 h-5 text-blue-700" />
-                  <span>{t.ctaSecondary}</span>
+                  <span>{lang === "en" ? "Partner With Us" : "Yi Hadin Gwiwa da Mu"}</span>
                 </button>
+              </div>
+
+              {/* Interactive Device Selector Hint */}
+              <div className="pt-2 flex items-center gap-3 text-xs text-slate-500 font-medium">
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 font-bold">
+                  <Flame className="w-3.5 h-3.5 text-amber-600" /> Try Live Demo:
+                </span>
+                <span>Click the interactive phone simulator on the right to test USSD dial codes!</span>
               </div>
 
               {/* Stakeholder Framework Alignment Pill Strip */}
@@ -421,128 +758,316 @@ export default function GoHIVLandingPage() {
               </div>
             </div>
 
-            {/* Right Hero Column: Interactive Device Mockup (Phone + Medical Cross Sync) */}
-            <div className="lg:col-span-5 relative flex justify-center">
-              {/* Background circular halo */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/10 via-sky-400/10 to-amber-400/15 rounded-3xl filter blur-2xl -z-10" />
+            {/* Right Hero Column: THE INTERACTIVE DUAL SIMULATOR */}
+            <div className="lg:col-span-6 relative flex flex-col items-center">
+              {/* Device Mode Switcher Tabs */}
+              <div className="w-full max-w-md flex items-center justify-between p-1.5 mb-3 bg-slate-200/80 rounded-2xl border border-slate-300 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveDeviceView("ussd");
+                    showToast("Switched Simulator", "Feature Phone USSD Mode (*384*44#)", "info");
+                  }}
+                  className={`flex-1 py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                    activeDeviceView === "ussd"
+                      ? "bg-blue-900 text-white shadow-md font-extrabold"
+                      : "text-slate-700 hover:text-slate-900"
+                  }`}
+                >
+                  <Smartphone className="w-4 h-4 text-amber-400" />
+                  <span>Feature Phone (USSD)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveDeviceView("smart");
+                    showToast("Switched Simulator", "Community Health Worker (CHW) Portal", "info");
+                  }}
+                  className={`flex-1 py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                    activeDeviceView === "smart"
+                      ? "bg-blue-900 text-white shadow-md font-extrabold"
+                      : "text-slate-700 hover:text-slate-900"
+                  }`}
+                >
+                  <Activity className="w-4 h-4 text-emerald-400" />
+                  <span>CHW Tablet (Offline App)</span>
+                </button>
+              </div>
 
-              {/* Interactive Phone / Dashboard Shell */}
-              <div className="w-full max-w-md bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-200/90 relative">
-                {/* Header status bar */}
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                  <div className="flex items-center gap-2">
-                    <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                    </span>
-                    <span className="text-xs font-bold text-slate-700">
-                      Offline-First Node: Active
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                    <WifiOff className="w-3.5 h-3.5 text-slate-600" />
-                    <span>Zero Data Needed</span>
-                  </div>
-                </div>
-
-                {/* Medical Cross Sync Graphic Banner */}
-                <div className="my-4 p-4 rounded-2xl bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white relative overflow-hidden">
-                  <div className="absolute -right-4 -bottom-4 opacity-10">
-                    <HeartPulse className="w-32 h-32" />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-blue-800/80 border border-blue-400/30 flex items-center justify-center shrink-0">
-                      <HeartPulse className="w-7 h-7 text-amber-400" />
+              {/* SIMULATOR CONTAINER */}
+              <div className="w-full max-w-md bg-white rounded-3xl p-5 shadow-2xl border-2 border-slate-200/90 relative">
+                {/* ----------------- MODE A: USSD FEATURE PHONE SIMULATOR ----------------- */}
+                {activeDeviceView === "ussd" && (
+                  <div className="space-y-4">
+                    {/* Phone top bar */}
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-xs">
+                      <div className="flex items-center gap-1.5 font-bold text-slate-700">
+                        <Radio className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+                        <span>Gombe 2G GSM Net</span>
+                      </div>
+                      <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Zero Airtime · Toll Free
+                      </span>
                     </div>
-                    <div>
-                      <p className="text-xs text-blue-200 uppercase tracking-wider font-semibold">
-                        Gombe Continuum Engine
-                      </p>
-                      <h4 className="text-base font-bold text-white flex items-center gap-1.5">
-                        Client ID: <span className="font-mono text-amber-300">GHV-GMB-8492</span>
-                      </h4>
+
+                    {/* USSD Monospace Screen */}
+                    <div className="bg-slate-950 rounded-2xl p-4 text-amber-300 font-mono text-xs shadow-inner border border-slate-800 min-h-[170px] flex flex-col justify-between">
+                      {/* Screen 1: Dialpad State */}
+                      {ussdScreen === "dialpad" && (
+                        <div className="space-y-3 py-2">
+                          <p className="text-slate-400 text-[11px]">Ready to dial Gombe USSD Gateway:</p>
+                          <div className="p-3 bg-slate-900 rounded-xl text-center text-xl font-bold text-emerald-400 tracking-wider">
+                            {ussdDialInput || "Enter code"}
+                          </div>
+                          <p className="text-[10px] text-slate-500 text-center">
+                            Press [CALL / SEND] below to initiate session
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Screen 2: Main Menu */}
+                      {ussdScreen === "mainMenu" && (
+                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
+                          <p className="text-amber-300 font-bold">
+                            {lang === "en" ? "Maraba / Welcome to GoHIV Gombe:" : "Maraba da zuwa GoHIV Gombe:"}
+                          </p>
+                          <p>1. {lang === "en" ? "Anonymous Risk Test" : "Binciken Hatsarin Kamuwa"}</p>
+                          <p>2. {lang === "en" ? "Nearest Clinic Locator" : "Gano Cibiyar Karbar Magani"}</p>
+                          <p>3. {lang === "en" ? "Daily ARV Dose Log" : "Taimakon Shan Magani"}</p>
+                          <p>4. {lang === "en" ? "Caregiver / Paediatric Mode" : "Yanayin Kula da Yara"}</p>
+                        </div>
+                      )}
+
+                      {/* Screen 3: Risk Assessment Question */}
+                      {ussdScreen === "riskQ1" && (
+                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
+                          <p className="text-sky-300 font-bold">[Step 1/2] Confidential Screen:</p>
+                          <p>Have you taken an HIV test in the last 6 months?</p>
+                          <p className="text-amber-300">1. Yes / Ee</p>
+                          <p className="text-amber-300">2. No / A&apos;a</p>
+                          <p className="text-[10px] text-slate-400 mt-2">Press [1] or [2] on keypad</p>
+                        </div>
+                      )}
+
+                      {/* Screen 4: Risk Assessment Result Voucher */}
+                      {ussdScreen === "riskResult" && (
+                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
+                          <p className="text-emerald-400 font-bold">✓ Test Voucher Issued!</p>
+                          <p className="text-slate-300 text-[11px]">
+                            Private Code: <span className="text-amber-300 font-bold">{generatedVoucher}</span>
+                          </p>
+                          <p className="text-[11px] text-slate-400">
+                            Present this confidential voucher at any Gombe PHC for priority free screening.
+                          </p>
+                          <p className="text-xs text-sky-400 font-bold mt-2">Press [0] for Main Menu</p>
+                        </div>
+                      )}
+
+                      {/* Screen 5: Clinic Select */}
+                      {ussdScreen === "clinicSelect" && (
+                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
+                          <p className="text-sky-300 font-bold">Select Your Local Area:</p>
+                          <p>1. Gombe Central / Spec Hospital</p>
+                          <p>2. Akko / Kumo General</p>
+                          <p>3. Yamaltu/Deba Cottage</p>
+                          <p className="text-[10px] text-slate-400">Press [1], [2], or [3]</p>
+                        </div>
+                      )}
+
+                      {/* Screen 6: Clinic Result */}
+                      {ussdScreen === "clinicResult" && (
+                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
+                          <p className="text-emerald-400 font-bold">Nearest Active Center:</p>
+                          <p className="text-amber-300 font-bold">State Specialist Hospital Gombe</p>
+                          <p className="text-[11px] text-slate-300">Open Mon-Fri: 8am - 4pm · Walk-ins Welcome</p>
+                          <p className="text-xs text-sky-400 font-bold mt-2">Press [0] for Main Menu</p>
+                        </div>
+                      )}
+
+                      {/* Screen 7: Meds Confirm */}
+                      {ussdScreen === "medsConfirm" && (
+                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
+                          <p className="text-emerald-400 font-bold">Daily ARV Check-In:</p>
+                          <p>Did you take your scheduled morning dose today?</p>
+                          <p className="text-amber-300">1. Ee (Taken) · Logged</p>
+                          <p className="text-amber-300">2. A&apos;a (Need Refill Alert)</p>
+                          <p className="text-xs text-sky-400 font-bold mt-2">Press [1] to confirm</p>
+                        </div>
+                      )}
+
+                      {/* Screen 8: Caregiver */}
+                      {ussdScreen === "caregiver" && (
+                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
+                          <p className="text-amber-300 font-bold">Caregiver Mode (Yara):</p>
+                          <p>1. Amina (4 yrs) - Dose Due</p>
+                          <p>2. Ibrahim (7 yrs) - Taken</p>
+                          <p className="text-xs text-sky-400 font-bold mt-2">Press [0] for Main Menu</p>
+                        </div>
+                      )}
+
+                      {/* Bottom action status inside screen */}
+                      <div className="pt-2 border-t border-slate-800 flex justify-between text-[10px] text-slate-400">
+                        <span>{ussdSessionActive ? "🟢 SESSION ACTIVE" : "⚪ STANDBY"}</span>
+                        <span>0 AIRTIME DEDUCTED</span>
+                      </div>
+                    </div>
+
+                    {/* Interactive Hardware-style Keypad */}
+                    <div className="grid grid-cols-3 gap-2 pt-1 font-mono">
+                      {["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"].map((key) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => handleKeypadPress(key)}
+                          className="h-10 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-blue-100 text-slate-800 font-bold text-sm shadow-xs transition-all flex items-center justify-center active:scale-95"
+                        >
+                          {key}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* USSD Action Buttons */}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      {!ussdSessionActive ? (
+                        <button
+                          type="button"
+                          onClick={handleDialSend}
+                          className="w-full py-2.5 px-4 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-700 shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all"
+                        >
+                          <Phone className="w-4 h-4" />
+                          <span>DIAL *384*44#</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleEndUssd}
+                          className="w-full py-2.5 px-4 rounded-xl font-bold text-xs text-white bg-rose-600 hover:bg-rose-700 shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all"
+                        >
+                          <X className="w-4 h-4" />
+                          <span>END SESSION</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUssdScreen("mainMenu");
+                          setUssdSessionActive(true);
+                          showToast("Main Menu", "Returned to USSD root menu", "info");
+                        }}
+                        className="w-full py-2.5 px-4 rounded-xl font-bold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>MENU</span>
+                      </button>
                     </div>
                   </div>
+                )}
 
-                  {/* Continuum Progress Bar */}
-                  <div className="mt-4 pt-3 border-t border-blue-800/60">
-                    <div className="flex justify-between text-[11px] font-medium text-blue-200 mb-1">
-                      <span>1. Risk Screened</span>
-                      <span className="text-amber-300 font-bold">2. Linked to ART</span>
-                      <span>3. Adherence</span>
+                {/* ----------------- MODE B: SMARTPHONE / CHW TABLET SIMULATOR ----------------- */}
+                {activeDeviceView === "smart" && (
+                  <div className="space-y-4">
+                    {/* Tablet Header with Live Offline Mode Toggle */}
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div>
+                        <p className="text-xs font-bold text-blue-950">CHEW Field Terminal</p>
+                        <p className="text-[10px] text-slate-500">Gombe Health Extension Worker</p>
+                      </div>
+
+                      {/* Interactive Offline Switch */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsSimulatedOffline(!isSimulatedOffline);
+                          showToast(
+                            !isSimulatedOffline ? "Offline Mode Triggered" : "Online Mode Restored",
+                            !isSimulatedOffline
+                              ? "Transactions will store in local SQLite encrypted queue"
+                              : "Connected to Gombe Health Cloud",
+                            !isSimulatedOffline ? "warning" : "success"
+                          );
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                          isSimulatedOffline
+                            ? "bg-amber-100 text-amber-900 border-amber-300"
+                            : "bg-emerald-100 text-emerald-900 border-emerald-300"
+                        }`}
+                      >
+                        {isSimulatedOffline ? (
+                          <>
+                            <WifiOff className="w-3.5 h-3.5 text-amber-600" />
+                            <span>Simulate: Offline</span>
+                          </>
+                        ) : (
+                          <>
+                            <Wifi className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Connected (Online)</span>
+                          </>
+                        )}
+                      </button>
                     </div>
-                    <div className="w-full bg-blue-950 rounded-full h-2 overflow-hidden flex">
-                      <div className="bg-emerald-400 h-full w-1/3"></div>
-                      <div className="bg-amber-400 h-full w-1/3"></div>
-                      <div className="bg-blue-700 h-full w-1/3"></div>
+
+                    {/* Patient Card Preview */}
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white relative">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-amber-300 bg-blue-900 px-2 py-0.5 rounded">
+                          Token: GHV-GMB-8492
+                        </span>
+                        <span className="text-[10px] text-blue-200">Stage: Viral Suppression</span>
+                      </div>
+                      <div className="mt-3">
+                        <p className="text-lg font-bold text-white">Daily ARV Regimen (TLD)</p>
+                        <p className="text-xs text-blue-200 mt-0.5">Next Refill: In 14 Days · PHC Pantami</p>
+                      </div>
+
+                      {/* Pill Intake Toggle Action */}
+                      <div className="mt-4 pt-3 border-t border-blue-800/80 flex items-center justify-between">
+                        <span className="text-xs text-slate-200">Today&apos;s Intake Status:</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIntakeLoggedToday(!intakeLoggedToday);
+                            if (!intakeLoggedToday) {
+                              setQueuedSyncRecords((prev) => prev + 1);
+                              showToast("Dose Confirmed", "Patient adherence logged for today", "success");
+                            }
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                            intakeLoggedToday
+                              ? "bg-emerald-500 text-white shadow-md"
+                              : "bg-amber-400 hover:bg-amber-500 text-slate-950"
+                          }`}
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>{intakeLoggedToday ? "Logged: Taken" : "Mark Dose Taken"}</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Interactive USSD Terminal Preview */}
-                <div className="bg-slate-900 rounded-2xl p-4 text-emerald-400 font-mono text-xs shadow-inner border border-slate-800">
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[10px] text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <Smartphone className="w-3 h-3 text-amber-400" /> USSD Bridge (*384*44#)
-                    </span>
-                    <span className="text-emerald-400">2G / 3G / 4G GSM</span>
-                  </div>
+                    {/* Offline Sync Buffer Box */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                      <div>
+                        <p className="font-bold text-slate-800">
+                          {queuedSyncRecords} Offline Records Queued
+                        </p>
+                        <p className="text-[11px] text-slate-500">Encrypted in local device storage</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleTriggerSync}
+                        disabled={syncingAnimation}
+                        className="px-3 py-1.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-bold flex items-center gap-1.5 text-xs transition-all disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${syncingAnimation ? "animate-spin" : ""}`} />
+                        <span>Sync Now</span>
+                      </button>
+                    </div>
 
-                  {/* USSD Dialog Screen Content */}
-                  <div className="space-y-1.5 py-1 text-slate-100">
-                    <p className="text-amber-300 font-bold">{t.ussdScreenGreeting}</p>
-                    <p>{t.ussdOption1}</p>
-                    <p>{t.ussdOption2}</p>
-                    <p>{t.ussdOption3}</p>
-                    <p>{t.ussdOption4}</p>
+                    <p className="text-[11px] text-slate-500 text-center">
+                      Allows healthcare workers to document patient care in remote wards without cell tower reception.
+                    </p>
                   </div>
-
-                  {/* Quick Action Simulator Buttons */}
-                  <div className="mt-3 pt-2 border-t border-slate-800 grid grid-cols-2 gap-2 text-[11px]">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        alert(
-                          lang === "en"
-                            ? "Simulated USSD: Anonymous test voucher generated! SMS sent to client with encrypted clinic token."
-                            : "USSD: An tura lambar sirri ta hanyar sakon SMS domin zuwa cibiyar gwaji a Gombe."
-                        )
-                      }
-                      className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-lg text-center font-sans font-semibold transition-colors"
-                    >
-                      Press [1] Risk Test
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        alert(
-                          lang === "en"
-                            ? "Simulated USSD: Locating nearest facility in Gombe: State Specialist Hospital & Urban Maternity Gombe."
-                            : "USSD: Asibitin Kwararru na Jihar Gombe da Cibiyar Maternity ne mafi kusa da kai."
-                        )
-                      }
-                      className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-300 rounded-lg text-center font-sans font-semibold transition-colors"
-                    >
-                      Press [2] Locate Clinic
-                    </button>
-                  </div>
-                </div>
-
-                {/* Floating Metric Badge */}
-                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                  <div className="p-2.5 rounded-xl bg-sky-50 border border-sky-100">
-                    <p className="text-lg font-black text-blue-900">94.8%</p>
-                    <p className="text-[10px] font-medium text-slate-600 uppercase">Adherence</p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-100">
-                    <p className="text-lg font-black text-amber-800">&lt; 48h</p>
-                    <p className="text-[10px] font-medium text-slate-600 uppercase">Linkage</p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-100">
-                    <p className="text-lg font-black text-emerald-800">11 LGAs</p>
-                    <p className="text-[10px] font-medium text-slate-600 uppercase">Ready</p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -550,142 +1075,288 @@ export default function GoHIVLandingPage() {
       </section>
 
       {/* =========================================================================
-          3. CORE MODULES (3-COLUMN CARD GRID)
+          3. CORE MODULES: WITH INTERACTIVE DEMO TABS
       ========================================================================= */}
       <section id="features" className="py-20 bg-white border-y border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+          <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-blue-900 text-xs font-bold uppercase tracking-wider">
               <Zap className="w-3.5 h-3.5 text-blue-600" />
-              Comprehensive Continuum Modules
+              Interactive Continuum Explorer
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-blue-950 tracking-tight">
               Three Pillars for Zero Lost-to-Follow-Up
             </h2>
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
-              Designed specifically for the socioeconomic reality of northern Nigeria—supporting
-              uninterrupted care from the very first risk screen to lifelong viral suppression.
+              Explore how GoHIV solves testing linkage, daily ARV adherence, and paediatric caregiver
+              support in rural and peri-urban Gombe.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Card 1: Testing & Linkage */}
-            <div className="group relative rounded-3xl p-8 bg-slate-50 hover:bg-white border-2 border-slate-200/90 hover:border-blue-600/40 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-blue-100 text-blue-900 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
-                  <HeartPulse className="w-7 h-7" />
-                </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-200">
-                    Continuum Step 01
+          {/* Module Selector Tabs */}
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
+            <button
+              type="button"
+              onClick={() => setActiveModuleTab("testing")}
+              className={`px-5 py-2.5 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 ${
+                activeModuleTab === "testing"
+                  ? "bg-blue-900 text-white shadow-lg shadow-blue-900/20 scale-105"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              <HeartPulse className="w-4 h-4 text-amber-400" />
+              <span>1. Testing &amp; Linkage</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveModuleTab("adherence")}
+              className={`px-5 py-2.5 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 ${
+                activeModuleTab === "adherence"
+                  ? "bg-blue-900 text-white shadow-lg shadow-blue-900/20 scale-105"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              <Clock className="w-4 h-4 text-amber-400" />
+              <span>2. Adherence &amp; Support</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveModuleTab("caregiver")}
+              className={`px-5 py-2.5 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 ${
+                activeModuleTab === "caregiver"
+                  ? "bg-blue-900 text-white shadow-lg shadow-blue-900/20 scale-105"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              <Baby className="w-4 h-4 text-emerald-400" />
+              <span>3. Caregiver Mode</span>
+            </button>
+          </div>
+
+          {/* Dynamic Module Showcase Box */}
+          <div className="p-8 sm:p-12 rounded-3xl bg-slate-50 border-2 border-slate-200/90 shadow-xl">
+            {/* MODULE 1: TESTING & LINKAGE */}
+            {activeModuleTab === "testing" && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-in fade-in duration-300">
+                <div className="lg:col-span-7 space-y-5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
+                    Module 01: Testing &amp; Linkage
                   </span>
+                  <h3 className="text-3xl font-black text-blue-950">
+                    Anonymous Risk Assessments &amp; 48-Hour Linkage
+                  </h3>
+                  <p className="text-slate-600 leading-relaxed text-base">
+                    Anonymous risk assessments and offline facility locators to seamlessly link positive
+                    cases to care. Eliminates social fear through zero-identity self-screening.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <span className="text-xs font-semibold text-slate-800">
+                        Confidential self-risk evaluation via USSD
+                      </span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <span className="text-xs font-semibold text-slate-800">
+                        Offline mapping of 11 Gombe LGAs ART clinics
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold text-blue-950 mb-3 group-hover:text-blue-700 transition-colors">
-                  Testing &amp; Linkage
-                </h3>
-                <p className="text-slate-600 leading-relaxed text-sm sm:text-base mb-6">
-                  Anonymous risk assessments and offline facility locators to seamlessly link positive
-                  cases to care.
-                </p>
-              </div>
 
-              <div className="pt-6 border-t border-slate-200/80 space-y-3">
-                <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>Confidential self-assessment via toll-free USSD &amp; SMS</span>
-                </div>
-                <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>Offline mapping of all 11 Gombe LGAs ART clinics</span>
-                </div>
-                <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>48-Hour fast-track electronic referral voucher</span>
+                {/* Interactive Voucher Generator Preview */}
+                <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-md space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <span className="text-xs font-bold text-slate-900">Live Voucher Generator</span>
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">
+                      Fast-Track Link
+                    </span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-center space-y-2">
+                    <p className="text-xs text-blue-900 font-semibold">Anonymous Client Linkage Token:</p>
+                    <p className="text-2xl font-mono font-black text-blue-950 tracking-wider">
+                      {generatedVoucher}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Generated via USSD *384*44# · Valid at any Gombe Primary Healthcare Facility
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newVoucher = `GHV-GMB-${Math.floor(1000 + Math.random() * 9000)}`;
+                      setGeneratedVoucher(newVoucher);
+                      showToast("New Voucher Created", newVoucher, "success");
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 font-bold text-xs text-white transition-all flex items-center justify-center gap-2"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Generate New Test Voucher</span>
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Card 2: Adherence & Support */}
-            <div className="group relative rounded-3xl p-8 bg-slate-50 hover:bg-white border-2 border-slate-200/90 hover:border-amber-500/50 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-slate-950 transition-all shadow-sm">
-                  <Clock className="w-7 h-7" />
-                </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200">
-                    Continuum Step 02
+            {/* MODULE 2: ADHERENCE & SUPPORT */}
+            {activeModuleTab === "adherence" && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-in fade-in duration-300">
+                <div className="lg:col-span-7 space-y-5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-3 py-1 rounded-full">
+                    Module 02: Adherence &amp; Support
                   </span>
+                  <h3 className="text-3xl font-black text-blue-950">
+                    Automated Multi-Channel Medication Reminders
+                  </h3>
+                  <p className="text-slate-600 leading-relaxed text-base">
+                    Automated SMS, USSD, and WhatsApp medication reminders for daily ARVs and
+                    long-acting PrEP. Patients verify pill intake with a single digit reply at zero
+                    cost.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-amber-600 shrink-0" />
+                      <span className="text-xs font-semibold text-slate-800">
+                        Discreet dosing prompts in Hausa &amp; English
+                      </span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-amber-600 shrink-0" />
+                      <span className="text-xs font-semibold text-slate-800">
+                        Predictive 7-day clinic stockout alerts
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold text-blue-950 mb-3 group-hover:text-amber-600 transition-colors">
-                  Adherence &amp; Support
-                </h3>
-                <p className="text-slate-600 leading-relaxed text-sm sm:text-base mb-6">
-                  Automated SMS, USSD, and WhatsApp medication reminders for daily ARVs and
-                  long-acting PrEP.
-                </p>
-              </div>
 
-              <div className="pt-6 border-t border-slate-200/80 space-y-3">
-                <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <span>Discreet daily dosing notifications in Hausa &amp; English</span>
-                </div>
-                <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <span>Zero-airtime pill check-in verification via 1-digit reply</span>
-                </div>
-                <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <span>Predictive refill alerts 7 days prior to stock exhaustion</span>
+                {/* Interactive SMS Simulator Sandbox */}
+                <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-md space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <span className="text-xs font-bold text-slate-900">Trigger Sample SMS</span>
+                    <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">
+                      Zero-Airtime
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <label className="block text-slate-500 font-semibold mb-1">Language</label>
+                      <select
+                        value={smsLang}
+                        onChange={(e) => setSmsLang(e.target.value as "ha" | "en")}
+                        className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 font-bold"
+                      >
+                        <option value="ha">Hausa (Harshe)</option>
+                        <option value="en">English</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-slate-500 font-semibold mb-1">Time Schedule</label>
+                      <select
+                        value={smsReminderTime}
+                        onChange={(e) => setSmsReminderTime(e.target.value)}
+                        className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 font-bold"
+                      >
+                        <option value="08:00 AM">08:00 AM (Morning)</option>
+                        <option value="08:00 PM">08:00 PM (Night)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleTriggerLiveSms}
+                    className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 font-bold text-xs text-white shadow-md transition-all flex items-center justify-center gap-2"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Send Test SMS to My Screen</span>
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Card 3: Caregiver Mode */}
-            <div className="group relative rounded-3xl p-8 bg-slate-50 hover:bg-white border-2 border-slate-200/90 hover:border-emerald-500/50 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-900 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
-                  <Baby className="w-7 h-7" />
-                </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
-                    Continuum Step 03
+            {/* MODULE 3: CAREGIVER MODE */}
+            {activeModuleTab === "caregiver" && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-in fade-in duration-300">
+                <div className="lg:col-span-7 space-y-5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
+                    Module 03: Caregiver Mode
                   </span>
+                  <h3 className="text-3xl font-black text-blue-950">
+                    Paediatric Dosing &amp; Multi-Child Management
+                  </h3>
+                  <p className="text-slate-600 leading-relaxed text-base">
+                    Simplified tools allowing caregivers to manage paediatric adherence and log daily
+                    schedules for multiple children. Designed with direct alert escalation to
+                    Community Health Workers (CHEWs).
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <span className="text-xs font-semibold text-slate-800">
+                        Multi-child dose scheduling &amp; proxy check-in
+                      </span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <span className="text-xs font-semibold text-slate-800">
+                        Weight-adjusted paediatric dosage warnings
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold text-blue-950 mb-3 group-hover:text-emerald-700 transition-colors">
-                  Caregiver Mode
-                </h3>
-                <p className="text-slate-600 leading-relaxed text-sm sm:text-base mb-6">
-                  Simplified tools allowing caregivers to manage paediatric adherence and log daily
-                  schedules for multiple children.
-                </p>
-              </div>
 
-              <div className="pt-6 border-t border-slate-200/80 space-y-3">
-                <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>Multi-child dose scheduling and guardian proxy check-in</span>
-                </div>
-                <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>Weight-adjusted paediatric dosage reminders &amp; alerts</span>
-                </div>
-                <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>Direct SOS escalation to Community Health Workers (CHEWs)</span>
+                {/* Interactive Caregiver Multi-Child Card */}
+                <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-md space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <span className="text-xs font-bold text-slate-900">Guardian Ward Adherence</span>
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">
+                      2 Children Active
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {childrenList.map((child) => (
+                      <div
+                        key={child.id}
+                        className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between"
+                      >
+                        <div>
+                          <p className="text-xs font-bold text-slate-900">{child.name}</p>
+                          <p className="text-[10px] text-slate-500">{child.regimen}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setChildrenList((prev) =>
+                              prev.map((c) =>
+                                c.id === child.id ? { ...c, morningTaken: !c.morningTaken } : c
+                              )
+                            );
+                            showToast("Child Dose Updated", `Updated status for ${child.name}`, "success");
+                          }}
+                          className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1 transition-all ${
+                            child.morningTaken
+                              ? "bg-emerald-600 text-white"
+                              : "bg-amber-400 hover:bg-amber-500 text-slate-950"
+                          }`}
+                        >
+                          <Check className="w-3 h-3" />
+                          <span>{child.morningTaken ? "Dose Done" : "Mark Taken"}</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          4. WHY GOHIV? (FEATURE HIGHLIGHTS - ALTERNATING LAYOUT)
+          4. WHY GOHIV? WITH INTERACTIVE PROOF-OF-CONCEPT PLAYGROUNDS
       ========================================================================= */}
       <section id="how-it-works" className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
-          {/* Section Header */}
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-bold tracking-widest uppercase text-blue-700 bg-sky-100 px-3 py-1 rounded-full">
               Engineered For Nigeria&apos;s Grassroots
@@ -699,7 +1370,7 @@ export default function GoHIVLandingPage() {
             </p>
           </div>
 
-          {/* Feature 1: Offline-First & USSD Ready (Text Left, Visual Right) */}
+          {/* Feature 1: Offline-First & USSD Ready */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-6 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-blue-100 text-blue-900 text-xs font-bold">
@@ -756,7 +1427,6 @@ export default function GoHIVLandingPage() {
                 </div>
 
                 <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Basic feature phone card */}
                   <div className="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-4 flex flex-col justify-between">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-slate-400 text-[11px]">
@@ -779,7 +1449,6 @@ export default function GoHIVLandingPage() {
                     </div>
                   </div>
 
-                  {/* Tablet / CHW dashboard card */}
                   <div className="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-4 flex flex-col justify-between">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-slate-400 text-[11px]">
@@ -807,53 +1476,65 @@ export default function GoHIVLandingPage() {
                     </div>
                   </div>
                 </div>
-
-                <div className="mt-6 pt-4 border-t border-blue-800/60 text-center text-xs text-blue-300 font-medium">
-                  Autonomous synchronization between village health posts and Gombe State health database.
-                </div>
               </div>
             </div>
           </div>
 
-          {/* Feature 2: Privacy by Design (Visual Left, Text Right) */}
+          {/* Feature 2: Privacy by Design WITH INTERACTIVE HASHER PLAYGROUND */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Visual 2: Privacy / Cryptographic Token Architecture */}
+            {/* Visual 2: Interactive Token Playground */}
             <div className="lg:col-span-6 order-2 lg:order-1">
-              <div className="relative p-6 sm:p-8 rounded-3xl bg-white border-2 border-slate-200/90 shadow-xl space-y-6">
+              <div className="p-6 sm:p-8 rounded-3xl bg-white border-2 border-slate-200/90 shadow-xl space-y-5">
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                   <div className="flex items-center gap-2">
                     <div className="p-2 rounded-xl bg-emerald-100 text-emerald-800">
                       <Lock className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-900 text-base">NDPR Certified Architecture</h4>
+                      <h4 className="font-bold text-slate-900 text-base">NDPR Compliance Tester</h4>
                       <p className="text-xs text-slate-500">Nigeria Data Protection Regulation</p>
                     </div>
                   </div>
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                    Compliant
+                    Active Salt Hash
                   </span>
                 </div>
 
-                {/* Stigma-Free ID flow */}
                 <div className="space-y-3">
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs sm:text-sm">
-                    <span className="font-medium text-slate-600">Client Phone / SIM</span>
-                    <span className="font-mono text-slate-500">0803 ••• 4414</span>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                      Test With A Mobile Phone Number:
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={demoPhoneInput}
+                        onChange={(e) => setDemoPhoneInput(e.target.value)}
+                        className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono"
+                        placeholder="0803XXXXXXX"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleGenerateHash}
+                        className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs"
+                      >
+                        Encrypt Token
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="flex justify-center my-1 text-slate-400">
-                    <span className="text-xs font-mono font-semibold bg-sky-100 text-blue-900 px-3 py-1 rounded-full">
-                      ↓ SHA-256 One-Way Salted Hash
+                  <div className="flex justify-center text-slate-400">
+                    <span className="text-[11px] font-mono font-semibold bg-sky-100 text-blue-900 px-3 py-0.5 rounded-full">
+                      ↓ One-Way SHA-256 State Salt
                     </span>
                   </div>
 
                   <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-between text-xs sm:text-sm">
-                    <span className="font-bold text-blue-950">Pseudonymous Token ID</span>
-                    <span className="font-mono font-bold text-blue-700">GHV-AKKO-9041</span>
+                    <span className="font-bold text-blue-950">Pseudonymous Token ID:</span>
+                    <span className="font-mono font-bold text-blue-700">{hashedTokenOutput}</span>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
                     <p className="font-bold flex items-center gap-1.5">
                       <ShieldCheck className="w-4 h-4 text-amber-700" /> Zero Status Storage Policy
                     </p>
@@ -862,11 +1543,6 @@ export default function GoHIVLandingPage() {
                       alone holds their confidential PIN.
                     </p>
                   </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-2 text-xs text-slate-500">
-                  <span>Protected against social stigma</span>
-                  <span>100% Volunteer Participation</span>
                 </div>
               </div>
             </div>
@@ -892,8 +1568,8 @@ export default function GoHIVLandingPage() {
                   <div>
                     <h4 className="font-bold text-blue-950">Zero-Stigma SMS Masking</h4>
                     <p className="text-sm text-slate-600">
-                      Reminder messages are packaged as generic, neutral wellness prompts so nosy
-                      onlookers cannot infer HIV treatment status.
+                      Reminder messages are packaged as generic, neutral wellness prompts so onlookers
+                      cannot infer HIV treatment status.
                     </p>
                   </div>
                 </div>
@@ -914,7 +1590,7 @@ export default function GoHIVLandingPage() {
             </div>
           </div>
 
-          {/* Feature 3: Localized for Gombe (Text Left, Visual Right) */}
+          {/* Feature 3: Localized for Gombe WITH WORKING AUDIO SIMULATOR */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-6 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-amber-100 text-amber-900 text-xs font-bold">
@@ -958,7 +1634,7 @@ export default function GoHIVLandingPage() {
               </div>
             </div>
 
-            {/* Visual 3: Hausa / English Language Audio Card Preview */}
+            {/* Visual 3: Working Hausa Audio Player Simulator */}
             <div className="lg:col-span-6">
               <div className="p-6 sm:p-8 rounded-3xl bg-white border-2 border-slate-200/90 shadow-xl space-y-5">
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -974,44 +1650,61 @@ export default function GoHIVLandingPage() {
                     </div>
                   </div>
                   <span className="text-[11px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-md">
-                    Low Literacy
+                    Low Literacy Ready
                   </span>
                 </div>
 
                 {/* Simulated Hausa message bubble */}
-                <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-3 font-sans">
+                <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-2">
                   <div className="flex items-center justify-between text-xs text-slate-400">
                     <span>Sakon GoHIV Gombe</span>
                     <span>Yau, 8:00 na safe</span>
                   </div>
-                  <p className="text-sm sm:text-base font-medium text-amber-300 leading-snug">
+                  <p className="text-sm font-medium text-amber-300 leading-snug">
                     &ldquo;Barka da safiya. Lokacin shan maganin kariyar lafiyarku ya yi. Kar a manta
                     a sha tare da ruwa mai tsabta.&rdquo;
                   </p>
                   <p className="text-xs text-slate-400">
-                    English translation: &ldquo;Good morning. It is time for your scheduled health
-                    dosing. Please remember to take it with clean water.&rdquo;
+                    Translation: &ldquo;Good morning. It is time for your scheduled health dosing.
+                    Please take it with clean water.&rdquo;
                   </p>
                 </div>
 
-                {/* Audio voice-note simulator */}
-                <div className="p-3.5 rounded-xl bg-sky-50 border border-sky-200/80 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xs">
-                      <Volume2 className="w-4 h-4" />
+                {/* Interactive IVR Voice-Note Audio Player */}
+                <div className="p-4 rounded-2xl bg-sky-50 border border-sky-200/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsPlayingAudio(!isPlayingAudio);
+                          showToast(
+                            !isPlayingAudio ? "Playing Audio Sample" : "Audio Paused",
+                            "Simulating Hausa IVR automated phone call playback",
+                            "info"
+                          );
+                        }}
+                        className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-md active:scale-95 transition-all"
+                      >
+                        {isPlayingAudio ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+                      </button>
+                      <div>
+                        <p className="text-xs font-bold text-blue-950">Hausa IVR Voice Note (0:18)</p>
+                        <p className="text-[11px] text-slate-500">Audio call prompt for rural non-readers</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-blue-950">Hausa IVR Voice Note (0:18)</p>
-                      <p className="text-[11px] text-slate-500">Audio prompt for non-readers</p>
-                    </div>
+
+                    <span className="text-xs font-mono font-bold text-blue-900">
+                      {isPlayingAudio ? `${Math.floor((audioPlaybackProgress / 100) * 18)}s / 18s` : "0:18"}
+                    </span>
                   </div>
-                  {/* Waveform graphic */}
-                  <div className="flex items-center gap-1">
-                    <span className="w-1 h-3 bg-blue-400 rounded-full animate-pulse"></span>
-                    <span className="w-1 h-6 bg-blue-600 rounded-full animate-pulse"></span>
-                    <span className="w-1 h-4 bg-blue-500 rounded-full animate-pulse"></span>
-                    <span className="w-1 h-7 bg-amber-500 rounded-full animate-pulse"></span>
-                    <span className="w-1 h-3 bg-blue-400 rounded-full animate-pulse"></span>
+
+                  {/* Dynamic Progress Bar */}
+                  <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-blue-600 h-full transition-all duration-300"
+                      style={{ width: `${audioPlaybackProgress}%` }}
+                    />
                   </div>
                 </div>
               </div>
@@ -1027,12 +1720,8 @@ export default function GoHIVLandingPage() {
         id="pilot-program"
         className="py-24 bg-gradient-to-b from-[#08152B] via-[#0F2752] to-[#0A1B39] text-white relative overflow-hidden"
       >
-        {/* Glow decoration */}
-        <div className="absolute top-1/4 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
+          <div className="max-w-3xl mx-auto text-center space-y-4">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-800/60 border border-blue-400/30 text-amber-300 text-xs sm:text-sm font-bold tracking-wide">
               <Sparkles className="w-4 h-4" />
               Strategic Implementation Target: 2027
@@ -1047,16 +1736,13 @@ export default function GoHIVLandingPage() {
           </div>
 
           {/* 4 Key Metrics We Will Track */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            {/* Metric 1: Testing Uptake */}
-            <div className="p-6 rounded-3xl bg-blue-900/40 border border-blue-700/50 hover:border-amber-400/60 transition-all backdrop-blur-xs flex flex-col justify-between">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="p-6 rounded-3xl bg-blue-900/40 border border-blue-700/50 hover:border-amber-400/60 transition-all flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="w-10 h-10 rounded-xl bg-blue-800 text-amber-400 flex items-center justify-center font-bold">
                   01
                 </div>
-                <p className="text-xs uppercase tracking-wider text-blue-300 font-semibold">
-                  Primary KPI
-                </p>
+                <p className="text-xs uppercase tracking-wider text-blue-300 font-semibold">Primary KPI</p>
                 <h3 className="text-xl font-bold text-white">Testing Uptake</h3>
                 <p className="text-sm text-blue-100/80 leading-relaxed">
                   Targeting +45% increase in anonymous community screening uptake via USSD &amp; peer
@@ -1069,15 +1755,12 @@ export default function GoHIVLandingPage() {
               </div>
             </div>
 
-            {/* Metric 2: Linkage Rates */}
-            <div className="p-6 rounded-3xl bg-blue-900/40 border border-blue-700/50 hover:border-amber-400/60 transition-all backdrop-blur-xs flex flex-col justify-between">
+            <div className="p-6 rounded-3xl bg-blue-900/40 border border-blue-700/50 hover:border-amber-400/60 transition-all flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="w-10 h-10 rounded-xl bg-blue-800 text-emerald-400 flex items-center justify-center font-bold">
                   02
                 </div>
-                <p className="text-xs uppercase tracking-wider text-blue-300 font-semibold">
-                  Retention Target
-                </p>
+                <p className="text-xs uppercase tracking-wider text-blue-300 font-semibold">Retention Target</p>
                 <h3 className="text-xl font-bold text-white">Linkage Rates</h3>
                 <p className="text-sm text-blue-100/80 leading-relaxed">
                   Accelerating verified linkage to ART clinics within 48 hours of positive reactive
@@ -1090,15 +1773,12 @@ export default function GoHIVLandingPage() {
               </div>
             </div>
 
-            {/* Metric 3: Viral Suppression */}
-            <div className="p-6 rounded-3xl bg-blue-900/40 border border-blue-700/50 hover:border-amber-400/60 transition-all backdrop-blur-xs flex flex-col justify-between">
+            <div className="p-6 rounded-3xl bg-blue-900/40 border border-blue-700/50 hover:border-amber-400/60 transition-all flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="w-10 h-10 rounded-xl bg-blue-800 text-sky-400 flex items-center justify-center font-bold">
                   03
                 </div>
-                <p className="text-xs uppercase tracking-wider text-blue-300 font-semibold">
-                  UNAIDS Goal
-                </p>
+                <p className="text-xs uppercase tracking-wider text-blue-300 font-semibold">UNAIDS Goal</p>
                 <h3 className="text-xl font-bold text-white">Viral Suppression</h3>
                 <p className="text-sm text-blue-100/80 leading-relaxed">
                   Sustaining daily medication adherence to achieve the 95-95-95 viral suppression
@@ -1111,15 +1791,12 @@ export default function GoHIVLandingPage() {
               </div>
             </div>
 
-            {/* Metric 4: Caregiver Retention */}
-            <div className="p-6 rounded-3xl bg-blue-900/40 border border-blue-700/50 hover:border-amber-400/60 transition-all backdrop-blur-xs flex flex-col justify-between">
+            <div className="p-6 rounded-3xl bg-blue-900/40 border border-blue-700/50 hover:border-amber-400/60 transition-all flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="w-10 h-10 rounded-xl bg-blue-800 text-orange-400 flex items-center justify-center font-bold">
                   04
                 </div>
-                <p className="text-xs uppercase tracking-wider text-blue-300 font-semibold">
-                  Paediatric Focus
-                </p>
+                <p className="text-xs uppercase tracking-wider text-blue-300 font-semibold">Paediatric Focus</p>
                 <h3 className="text-xl font-bold text-white">Caregiver Retention</h3>
                 <p className="text-sm text-blue-100/80 leading-relaxed">
                   Preventing lost-to-follow-up among infants and children through simplified proxy
@@ -1129,6 +1806,74 @@ export default function GoHIVLandingPage() {
               <div className="mt-6 pt-4 border-t border-blue-800/80">
                 <span className="text-2xl font-black text-orange-400">98%</span>
                 <span className="text-xs text-blue-200 block">Paediatric Cohort Retention</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Pilot Impact Calculator Slider */}
+          <div className="p-8 rounded-3xl bg-blue-950/90 border border-blue-700/80 shadow-2xl space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                  Interactive Projection Model
+                </span>
+                <h3 className="text-2xl font-bold text-white mt-1">
+                  Pilot Scale &amp; State Impact Calculator
+                </h3>
+              </div>
+              <div className="text-right">
+                <span className="text-xs text-blue-300 block">Target User Cohort:</span>
+                <span className="text-3xl font-black text-amber-300 font-mono">
+                  {pilotUserScale.toLocaleString()} Users
+                </span>
+              </div>
+            </div>
+
+            {/* Slider */}
+            <div>
+              <input
+                type="range"
+                min="1000"
+                max="10000"
+                step="500"
+                value={pilotUserScale}
+                onChange={(e) => setPilotUserScale(Number(e.target.value))}
+                className="w-full accent-amber-400 h-2 bg-blue-800 rounded-lg cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-blue-300 mt-2 font-mono">
+                <span>1,000 Users (Ward Level)</span>
+                <span>5,000 Users (Current Pilot Target)</span>
+                <span>10,000 Users (Full State Expansion)</span>
+              </div>
+            </div>
+
+            {/* Reactive Output Numbers */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+              <div className="p-4 rounded-2xl bg-blue-900/50 border border-blue-800">
+                <p className="text-xs text-blue-300">Projected Linkages:</p>
+                <p className="text-xl font-bold text-white font-mono mt-1">
+                  +{Math.floor(pilotUserScale * 0.91).toLocaleString()} Patients
+                </p>
+                <p className="text-[10px] text-emerald-400 mt-0.5">Linked to care in 48h</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-blue-900/50 border border-blue-800">
+                <p className="text-xs text-blue-300">Daily Adherence SMS:</p>
+                <p className="text-xl font-bold text-white font-mono mt-1">
+                  {(pilotUserScale * 30).toLocaleString()} /mo
+                </p>
+                <p className="text-[10px] text-amber-400 mt-0.5">Zero-airtime prompts</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-blue-900/50 border border-blue-800">
+                <p className="text-xs text-blue-300">Paediatric Retention:</p>
+                <p className="text-xl font-bold text-white font-mono mt-1">
+                  {Math.floor(pilotUserScale * 0.18).toLocaleString()} Children
+                </p>
+                <p className="text-[10px] text-sky-400 mt-0.5">Under Caregiver Mode</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-blue-900/50 border border-blue-800">
+                <p className="text-xs text-blue-300">Viral Load Target:</p>
+                <p className="text-xl font-bold text-white font-mono mt-1">95.4%</p>
+                <p className="text-[10px] text-emerald-400 mt-0.5">UNAIDS 95-95-95 aligned</p>
               </div>
             </div>
           </div>
@@ -1153,13 +1898,16 @@ export default function GoHIVLandingPage() {
 
             {/* LGA Pill buttons */}
             <div className="flex flex-wrap gap-2">
-              {GOMBE_LGAS.map((lga) => (
+              {GOMBE_LGA_KEYS.map((lga) => (
                 <button
                   key={lga}
                   type="button"
-                  onClick={() => setActiveLga(lga)}
+                  onClick={() => {
+                    setActiveLgaKey(lga);
+                    showToast("LGA Selected", `${lga} LGA profile loaded with clinical sites`, "info");
+                  }}
                   className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                    activeLga === lga
+                    activeLgaKey === lga
                       ? "bg-amber-400 text-slate-950 font-bold shadow-md shadow-amber-400/20 scale-105"
                       : "bg-blue-900/60 hover:bg-blue-800 text-blue-200 border border-blue-700/50"
                   }`}
@@ -1169,31 +1917,58 @@ export default function GoHIVLandingPage() {
               ))}
             </div>
 
-            {/* Active LGA Detail Bar */}
-            <div className="mt-6 p-4 rounded-2xl bg-blue-900/40 border border-blue-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs sm:text-sm">
-              <div className="space-y-1">
-                <span className="text-amber-300 font-bold uppercase tracking-wider text-[11px]">
-                  Selected Local Government:
-                </span>
-                <p className="text-base font-bold text-white">
-                  {activeLga} LGA · Primary Health Care &amp; General Hospital Network
-                </p>
-                <p className="text-blue-200 text-xs">
-                  Readiness: USSD Gateway Configured · Hausa IVR Audio Prompts Installed · SFH /
-                  SASCP Hub Linked.
-                </p>
+            {/* Active LGA Interactive Profile Box */}
+            <div className="mt-6 p-6 rounded-2xl bg-blue-900/40 border border-blue-800 flex flex-col md:flex-row justify-between gap-6">
+              <div className="space-y-3 max-w-xl">
+                <div>
+                  <span className="text-amber-300 font-bold uppercase tracking-wider text-[11px]">
+                    Active Clinical Pilot Profile:
+                  </span>
+                  <h5 className="text-2xl font-bold text-white">{currentLga.name}</h5>
+                  <p className="text-xs text-blue-200">
+                    Terrain: {currentLga.terrain} · Targeted Pilot Cohort: {currentLga.targetUsers} Participants
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                    Designated ART Facilities &amp; PHCs in {activeLgaKey}:
+                  </p>
+                  <ul className="space-y-1">
+                    {currentLga.facilities.map((fac, idx) => (
+                      <li key={idx} className="flex items-center gap-2 text-xs text-blue-100">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>{fac}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData((prev) => ({ ...prev, lga: activeLga }));
-                  setIsDemoModalOpen(true);
-                }}
-                className="shrink-0 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 font-bold text-white text-xs transition-colors flex items-center justify-center gap-1.5"
-              >
-                <span>Express Interest for {activeLga}</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
+
+              <div className="flex flex-col justify-between gap-4 shrink-0 sm:min-w-[220px]">
+                <div className="space-y-2 text-xs">
+                  <div className="p-2.5 rounded-xl bg-blue-950/80 border border-blue-800">
+                    <span className="text-slate-400 block text-[10px]">PHC Facilities:</span>
+                    <span className="text-base font-bold text-white">{currentLga.phcCount} Health Posts</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-blue-950/80 border border-blue-800">
+                    <span className="text-slate-400 block text-[10px]">Field CHEWs Assigned:</span>
+                    <span className="text-base font-bold text-white">{currentLga.chewWorkers} Health Workers</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData((prev) => ({ ...prev, lga: activeLgaKey }));
+                    setIsDemoModalOpen(true);
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 font-bold text-white text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md"
+                >
+                  <span>Express Interest for {activeLgaKey}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1203,11 +1978,8 @@ export default function GoHIVLandingPage() {
           6. CALL TO ACTION & FOOTER AREA
       ========================================================================= */}
       <footer id="contact" className="bg-white border-t border-slate-200">
-        {/* Main CTA Card Box */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -translate-y-12">
           <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white shadow-2xl border border-blue-800 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
-
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
               <div className="lg:col-span-8 space-y-4">
                 <span className="text-xs font-bold uppercase tracking-widest text-amber-300 bg-blue-900/80 px-3 py-1 rounded-full border border-blue-700">
@@ -1221,9 +1993,7 @@ export default function GoHIVLandingPage() {
                   pilot. Request a confidential stakeholder briefing or live technical walkthrough.
                 </p>
 
-                {/* Direct Contact Pills */}
                 <div className="pt-2 flex flex-wrap items-center gap-4 text-xs sm:text-sm">
-                  {/* Email button with copy state */}
                   <div className="flex items-center gap-2 bg-blue-900/70 border border-blue-700/80 rounded-xl px-3.5 py-2">
                     <Mail className="w-4 h-4 text-amber-400" />
                     <a
@@ -1246,7 +2016,6 @@ export default function GoHIVLandingPage() {
                     </button>
                   </div>
 
-                  {/* Phone button with copy state */}
                   <div className="flex items-center gap-2 bg-blue-900/70 border border-blue-700/80 rounded-xl px-3.5 py-2">
                     <Phone className="w-4 h-4 text-emerald-400" />
                     <a href="tel:09075444148" className="font-mono font-medium text-white hover:underline">
@@ -1268,12 +2037,11 @@ export default function GoHIVLandingPage() {
                 </div>
               </div>
 
-              {/* Big CTA Button */}
               <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-center">
                 <button
                   type="button"
                   onClick={() => setIsDemoModalOpen(true)}
-                  className="w-full inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-base text-white bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 shadow-xl shadow-orange-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all text-center focus:ring-2 focus:ring-orange-400"
+                  className="w-full inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-base text-white bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 shadow-xl shadow-orange-600/30 transition-all text-center"
                 >
                   <Send className="w-4 h-4" />
                   <span>Get in Touch</span>
@@ -1293,7 +2061,6 @@ export default function GoHIVLandingPage() {
         {/* Bottom Detailed Footer */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-slate-200">
-            {/* Col 1: About */}
             <div className="space-y-4 md:col-span-1">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-blue-900 text-white flex items-center justify-center shadow-xs">
@@ -1312,43 +2079,22 @@ export default function GoHIVLandingPage() {
               </div>
             </div>
 
-            {/* Col 2: Navigation */}
             <div className="space-y-2 text-xs">
               <p className="font-bold text-slate-900 uppercase tracking-wider mb-2">Navigation</p>
-              <p>
-                <a href="#features" className="text-slate-600 hover:text-blue-900 transition-colors">
-                  Core Modules
-                </a>
-              </p>
-              <p>
-                <a href="#how-it-works" className="text-slate-600 hover:text-blue-900 transition-colors">
-                  Offline &amp; USSD Architecture
-                </a>
-              </p>
-              <p>
-                <a href="#pilot-program" className="text-slate-600 hover:text-blue-900 transition-colors">
-                  2027 Pilot Program
-                </a>
-              </p>
-              <p>
-                <a href="#contact" className="text-slate-600 hover:text-blue-900 transition-colors">
-                  Stakeholder Contact
-                </a>
-              </p>
+              <p><a href="#features" className="text-slate-600 hover:text-blue-900">Core Modules</a></p>
+              <p><a href="#how-it-works" className="text-slate-600 hover:text-blue-900">Offline &amp; USSD Architecture</a></p>
+              <p><a href="#pilot-program" className="text-slate-600 hover:text-blue-900">2027 Pilot Program</a></p>
+              <p><a href="#contact" className="text-slate-600 hover:text-blue-900">Stakeholder Contact</a></p>
             </div>
 
-            {/* Col 3: Stakeholders */}
             <div className="space-y-2 text-xs">
-              <p className="font-bold text-slate-900 uppercase tracking-wider mb-2">
-                Institutional Alignment
-              </p>
+              <p className="font-bold text-slate-900 uppercase tracking-wider mb-2">Institutional Alignment</p>
               <p className="text-slate-600">GOMSACA · Gombe State</p>
               <p className="text-slate-600">SASCP · State AIDS &amp; STIs Programme</p>
               <p className="text-slate-600">Society for Family Health (SFH)</p>
               <p className="text-slate-600">Nigeria Data Protection Regulation (NDPR)</p>
             </div>
 
-            {/* Col 4: Contact info */}
             <div className="space-y-2 text-xs">
               <p className="font-bold text-slate-900 uppercase tracking-wider mb-2">Alpha Spark Secretariat</p>
               <p className="text-slate-600 flex items-center gap-2">
@@ -1387,11 +2133,10 @@ export default function GoHIVLandingPage() {
           aria-labelledby="modal-title"
         >
           <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 relative max-h-[92vh] overflow-y-auto">
-            {/* Close button */}
             <button
               type="button"
               onClick={() => setIsDemoModalOpen(false)}
-              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100"
               aria-label="Close dialog"
             >
               <X className="w-5 h-5" />
@@ -1479,7 +2224,7 @@ export default function GoHIVLandingPage() {
                         onChange={(e) => setFormData({ ...formData, lga: e.target.value })}
                         className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600 text-sm bg-white"
                       >
-                        {GOMBE_LGAS.map((lga) => (
+                        {GOMBE_LGA_KEYS.map((lga) => (
                           <option key={lga} value={lga}>
                             {lga} LGA
                           </option>
