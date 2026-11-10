@@ -235,25 +235,22 @@ export default function GoHIVLandingPage() {
   };
 
   // ---------------------------------------------------------------------------
-  // 1. HERO SECTION: INTERACTIVE DUAL SIMULATOR (USSD vs SMARTPHONE DASHBOARD)
+  // HERO SECTION: HERO VIEW SWITCHER (NURSE HERO vs. USSD KEYPAD DIALER)
   // ---------------------------------------------------------------------------
-  const [activeDeviceView, setActiveDeviceView] = useState<"ussd" | "smart">("ussd");
+  const [heroDisplayMode, setHeroDisplayMode] = useState<"nurse" | "ussd">("nurse");
 
   // USSD Interactive Machine
-  // Screens: 'dialpad' | 'mainMenu' | 'riskQ1' | 'riskResult' | 'clinicSelect' | 'clinicResult' | 'medsConfirm' | 'caregiver'
   const [ussdScreen, setUssdScreen] = useState<string>("dialpad");
   const [ussdDialInput, setUssdDialInput] = useState("*384*44#");
   const [ussdSessionActive, setUssdSessionActive] = useState(false);
   const [generatedVoucher, setGeneratedVoucher] = useState("GHV-GMB-9921");
 
-  // Smartphone / CHW Simulation State
-  const [isSimulatedOffline, setIsSimulatedOffline] = useState(false);
-  const [intakeLoggedToday, setIntakeLoggedToday] = useState(false);
-  const [queuedSyncRecords, setQueuedSyncRecords] = useState(3);
-  const [syncingAnimation, setSyncingAnimation] = useState(false);
+  // Hero Quick Interaction State
+  const [heroIntakeVerified, setHeroIntakeVerified] = useState(false);
+  const [heroOfflineState, setHeroOfflineState] = useState(true);
 
   // ---------------------------------------------------------------------------
-  // 2. CORE MODULES: INTERACTIVE TABBED PLAYGROUND
+  // CORE MODULES: INTERACTIVE TABBED PLAYGROUND
   // ---------------------------------------------------------------------------
   const [activeModuleTab, setActiveModuleTab] = useState<"testing" | "adherence" | "caregiver">("testing");
 
@@ -269,25 +266,23 @@ export default function GoHIVLandingPage() {
   ]);
 
   // ---------------------------------------------------------------------------
-  // 3. WHY GOHIV? INTERACTIVE PLAYGROUNDS
+  // WHY GOHIV? INTERACTIVE PLAYGROUNDS
   // ---------------------------------------------------------------------------
-  // Playground 1: NDPR Token Hasher
   const [demoPhoneInput, setDemoPhoneInput] = useState("0803 754 4148");
   const [hashedTokenOutput, setHashedTokenOutput] = useState("GHV-GMB-8419-SEC");
 
-  // Playground 2: Interactive Hausa Voice-Note Player
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [audioPlaybackProgress, setAudioPlaybackProgress] = useState(0);
   const audioIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // ---------------------------------------------------------------------------
-  // 4. PILOT 2027: INTERACTIVE IMPACT CALCULATOR & LGA SELECTOR
+  // PILOT 2027: INTERACTIVE IMPACT CALCULATOR & LGA SELECTOR
   // ---------------------------------------------------------------------------
   const [activeLgaKey, setActiveLgaKey] = useState<string>("Gombe");
   const [pilotUserScale, setPilotUserScale] = useState<number>(5000);
 
   // ---------------------------------------------------------------------------
-  // 5. STAKEHOLDER DEMO MODAL FORM
+  // STAKEHOLDER DEMO MODAL FORM
   // ---------------------------------------------------------------------------
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
@@ -306,7 +301,6 @@ export default function GoHIVLandingPage() {
     if (!ussdSessionActive) {
       setUssdDialInput((prev) => prev + val);
     } else {
-      // In active session, digits 1-4 route to menus
       if (ussdScreen === "mainMenu") {
         if (val === "1") setUssdScreen("riskQ1");
         else if (val === "2") setUssdScreen("clinicSelect");
@@ -324,9 +318,8 @@ export default function GoHIVLandingPage() {
     if (!ussdSessionActive) {
       setUssdSessionActive(true);
       setUssdScreen("mainMenu");
-      showToast("USSD Connected", "Dialed *384*44# via simulated 2G GSM cellular gateway", "info");
+      showToast("USSD Connected", "Dialed *384*44# via 2G GSM cellular gateway", "info");
     } else {
-      // Confirm or back
       setUssdScreen("mainMenu");
     }
   };
@@ -337,7 +330,6 @@ export default function GoHIVLandingPage() {
     showToast("Session Ended", "USSD session terminated safely. Zero airtime deducted.", "info");
   };
 
-  // Trigger Live SMS Demonstration
   const handleTriggerLiveSms = () => {
     const text =
       smsLang === "ha"
@@ -350,7 +342,6 @@ export default function GoHIVLandingPage() {
     }, 7000);
   };
 
-  // Audio simulator loop
   useEffect(() => {
     if (isPlayingAudio) {
       audioIntervalRef.current = setInterval(() => {
@@ -370,7 +361,6 @@ export default function GoHIVLandingPage() {
     };
   }, [isPlayingAudio]);
 
-  // Handle Token Hash Simulation
   const handleGenerateHash = () => {
     const randomHex = Math.floor(1000 + Math.random() * 9000);
     const mockHash = `GHV-${activeLgaKey.substring(0, 3).toUpperCase()}-${randomHex}-NDPR`;
@@ -378,17 +368,6 @@ export default function GoHIVLandingPage() {
     showToast("Cryptographic Token Generated", `Mapped ${demoPhoneInput} to anonymous salt token ${mockHash}`, "success");
   };
 
-  // Handle Manual Sync
-  const handleTriggerSync = () => {
-    setSyncingAnimation(true);
-    setTimeout(() => {
-      setQueuedSyncRecords(0);
-      setSyncingAnimation(false);
-      showToast("Offline Queue Synced", "All pending client check-ins safely committed to state server", "success");
-    }, 1500);
-  };
-
-  // Copy helper
   const handleCopy = (text: string, type: "email" | "phone") => {
     navigator.clipboard?.writeText(text);
     if (type === "email") {
@@ -441,7 +420,7 @@ export default function GoHIVLandingPage() {
         ))}
       </aside>
 
-      {/* Simulated Live GSM SMS Banner (slides down when triggered) */}
+      {/* Simulated Live GSM SMS Banner */}
       {simulatedSmsBanner && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 animate-in slide-in-from-top-6 duration-300">
           <div className="p-4 rounded-2xl bg-slate-900 text-white shadow-2xl border-2 border-amber-400 flex items-start gap-3">
@@ -529,7 +508,6 @@ export default function GoHIVLandingPage() {
 
             {/* Right Action Items */}
             <div className="hidden md:flex items-center gap-4">
-              {/* Language Switcher Pill */}
               <div
                 role="group"
                 aria-label="Language Selector"
@@ -652,11 +630,15 @@ export default function GoHIVLandingPage() {
       </header>
 
       {/* =========================================================================
-          2. HERO SECTION WITH INTERACTIVE DUAL SIMULATOR
+          2. HERO SECTION WITH REQUESTED HERO IMAGE & TACTILE INTERACTIVITY
       ========================================================================= */}
-      <section className="relative overflow-hidden pt-10 pb-20 md:pt-14 md:pb-28 bg-gradient-to-b from-white via-slate-50 to-sky-50/40">
+      <section className="relative overflow-hidden pt-8 pb-16 md:pt-12 md:pb-24 bg-gradient-to-b from-white via-slate-50 to-sky-50/50">
+        {/* Ambient background glows */}
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute bottom-10 left-10 w-96 h-96 bg-amber-300/15 rounded-full blur-3xl pointer-events-none -z-10" />
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
             {/* Left Hero Column: Copy & Dual CTAs */}
             <div className="lg:col-span-6 flex flex-col items-start text-left space-y-6">
               {/* Stakeholder & Pilot Badge */}
@@ -691,14 +673,14 @@ export default function GoHIVLandingPage() {
               </h1>
 
               {/* Subheadline */}
-              <p className="text-lg sm:text-xl text-slate-600 leading-relaxed max-w-2xl font-normal">
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl font-normal">
                 {lang === "en"
                   ? "An offline-first, privacy-centric platform connecting at-risk individuals to testing, care, and daily adherence support—no smartphone or internet required."
                   : "Tsari na zamani mai aiki ba tare da intanet ko wayar zamani ba, yana hada masu bukata da gwaji, magani, da bibiyar shan kwayoyin yau da kullum a asirce."}
               </p>
 
               {/* Dual Call-to-Action Buttons */}
-              <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+              <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-1">
                 {/* Primary CTA: Warm Gold */}
                 <a
                   href="#features"
@@ -719,87 +701,192 @@ export default function GoHIVLandingPage() {
                 </button>
               </div>
 
-              {/* Interactive Device Selector Hint */}
-              <div className="pt-2 flex items-center gap-3 text-xs text-slate-500 font-medium">
-                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 font-bold">
-                  <Flame className="w-3.5 h-3.5 text-amber-600" /> Try Live Demo:
-                </span>
-                <span>Click the interactive phone simulator on the right to test USSD dial codes!</span>
+              {/* Quick Hero Telemetry Bar */}
+              <div className="w-full grid grid-cols-3 gap-2 pt-2">
+                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+                  <p className="text-xl font-black text-blue-950">5,000+</p>
+                  <p className="text-[11px] font-semibold text-slate-500">Pilot Cohort</p>
+                </div>
+                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+                  <p className="text-xl font-black text-emerald-600">&gt; 90%</p>
+                  <p className="text-[11px] font-semibold text-slate-500">48h Linkage</p>
+                </div>
+                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+                  <p className="text-xl font-black text-amber-600">11 LGAs</p>
+                  <p className="text-[11px] font-semibold text-slate-500">Gombe Ready</p>
+                </div>
               </div>
 
               {/* Stakeholder Framework Alignment Pill Strip */}
-              <div className="pt-6 w-full border-t border-slate-200/80">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
+              <div className="pt-4 w-full border-t border-slate-200/80">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2.5">
                   Tailored for Seamless Ecosystem Integration With:
                 </p>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-bold shadow-xs">
                     <Building2 className="w-4 h-4 text-blue-700" />
                     <span>GOMSACA</span>
-                    <span className="text-[10px] text-slate-400 font-normal hidden sm:inline">
-                      (Gombe State Agency)
-                    </span>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-bold shadow-xs">
                     <Activity className="w-4 h-4 text-emerald-600" />
                     <span>SASCP</span>
-                    <span className="text-[10px] text-slate-400 font-normal hidden sm:inline">
-                      (State AIDS &amp; STIs)
-                    </span>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-bold shadow-xs">
                     <ShieldCheck className="w-4 h-4 text-amber-600" />
                     <span>SFH Nigeria</span>
-                    <span className="text-[10px] text-slate-400 font-normal hidden sm:inline">
-                      (Society for Family Health)
-                    </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Hero Column: THE INTERACTIVE DUAL SIMULATOR */}
+            {/* Right Hero Column: BEAUTIFUL HERO IMAGE + FLOATING INTERACTIVE WIDGETS */}
             <div className="lg:col-span-6 relative flex flex-col items-center">
-              {/* Device Mode Switcher Tabs */}
-              <div className="w-full max-w-md flex items-center justify-between p-1.5 mb-3 bg-slate-200/80 rounded-2xl border border-slate-300 text-xs font-bold">
+              {/* Interactive View Mode Switcher */}
+              <div className="w-full max-w-lg flex items-center justify-between p-1.5 mb-3 bg-slate-200/80 rounded-2xl border border-slate-300 text-xs font-bold z-20">
                 <button
                   type="button"
                   onClick={() => {
-                    setActiveDeviceView("ussd");
-                    showToast("Switched Simulator", "Feature Phone USSD Mode (*384*44#)", "info");
+                    setHeroDisplayMode("nurse");
+                    showToast("Clinical Care View", "Viewing Community Health Extension Worker profile", "info");
                   }}
                   className={`flex-1 py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
-                    activeDeviceView === "ussd"
+                    heroDisplayMode === "nurse"
                       ? "bg-blue-900 text-white shadow-md font-extrabold"
                       : "text-slate-700 hover:text-slate-900"
                   }`}
                 >
-                  <Smartphone className="w-4 h-4 text-amber-400" />
-                  <span>Feature Phone (USSD)</span>
+                  <Activity className="w-4 h-4 text-amber-400" />
+                  <span>Clinical Health Worker View</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setActiveDeviceView("smart");
-                    showToast("Switched Simulator", "Community Health Worker (CHW) Portal", "info");
+                    setHeroDisplayMode("ussd");
+                    showToast("USSD Keypad Mode", "Feature Phone Dialing Simulator (*384*44#)", "info");
                   }}
                   className={`flex-1 py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
-                    activeDeviceView === "smart"
+                    heroDisplayMode === "ussd"
                       ? "bg-blue-900 text-white shadow-md font-extrabold"
                       : "text-slate-700 hover:text-slate-900"
                   }`}
                 >
-                  <Activity className="w-4 h-4 text-emerald-400" />
-                  <span>CHW Tablet (Offline App)</span>
+                  <Smartphone className="w-4 h-4 text-emerald-400" />
+                  <span>Interactive USSD Keypad (*384*44#)</span>
                 </button>
               </div>
 
-              {/* SIMULATOR CONTAINER */}
-              <div className="w-full max-w-md bg-white rounded-3xl p-5 shadow-2xl border-2 border-slate-200/90 relative">
-                {/* ----------------- MODE A: USSD FEATURE PHONE SIMULATOR ----------------- */}
-                {activeDeviceView === "ussd" && (
-                  <div className="space-y-4">
-                    {/* Phone top bar */}
+              {/* MAIN HERO CARD CONTAINER */}
+              <div className="w-full max-w-lg relative">
+                {/* ---------------- MODE 1: THE REQUESTED HERO IMAGE WITH FLOATING CARDS ---------------- */}
+                {heroDisplayMode === "nurse" && (
+                  <div className="relative rounded-3xl overflow-hidden shadow-2xl border-2 border-slate-200/90 bg-white group">
+                    {/* The Hero Image from Pinterest Link */}
+                    <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100">
+                      <img
+                        src="/hero-image.jpg"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            "https://i.pinimg.com/736x/89/d9/5f/89d95fdc82936e4eceb748c4f444177f.jpg";
+                        }}
+                        alt="Gombe State Community Health Extension Worker supporting HIV care"
+                        className="w-full h-full object-cover object-top filter brightness-[1.02] contrast-[1.03] group-hover:scale-105 transition-transform duration-700"
+                      />
+
+                      {/* Subtle gradient vignette at bottom for text contrast */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent pointer-events-none" />
+
+                      {/* Floating Badge Top-Left: Offline-First Node */}
+                      <div className="absolute top-4 left-4 z-10">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setHeroOfflineState(!heroOfflineState);
+                            showToast(
+                              !heroOfflineState ? "Offline Engine Active" : "Online Mode",
+                              !heroOfflineState
+                                ? "Zero-Data USSD/SMS fallback mode is on"
+                                : "Syncing to Gombe State Health Cloud",
+                              "info"
+                            );
+                          }}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 backdrop-blur-md text-white text-xs font-bold border border-slate-700 shadow-lg hover:scale-105 transition-all"
+                        >
+                          <span className={`w-2.5 h-2.5 rounded-full ${heroOfflineState ? "bg-emerald-400 animate-pulse" : "bg-sky-400"}`} />
+                          <span>{heroOfflineState ? "Offline-First Sync: Active" : "Online Cloud Sync"}</span>
+                        </button>
+                      </div>
+
+                      {/* Floating Quick Dial Button Top-Right */}
+                      <div className="absolute top-4 right-4 z-10">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setHeroDisplayMode("ussd");
+                            setUssdSessionActive(true);
+                            setUssdScreen("mainMenu");
+                            showToast("Dialed *384*44#", "Opened interactive USSD feature phone session", "success");
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-400 text-slate-950 text-xs font-black shadow-lg hover:bg-amber-300 hover:scale-105 active:scale-95 transition-all"
+                        >
+                          <Phone className="w-3.5 h-3.5 fill-current" />
+                          <span>Dial *384*44#</span>
+                        </button>
+                      </div>
+
+                      {/* Floating Card at Bottom: Interactive Telemetry & Health Worker Profile */}
+                      <div className="absolute bottom-4 left-4 right-4 z-10 p-4 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-2xl text-slate-900 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center font-bold">
+                              <HeartPulse className="w-4 h-4 text-blue-700" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-extrabold text-blue-950">Gombe State Healthcare Extension</p>
+                              <p className="text-[11px] text-slate-500">CHEW Outreach · State Specialist Hospital</p>
+                            </div>
+                          </div>
+                          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                            Verified
+                          </span>
+                        </div>
+
+                        {/* Interactive Adherence Toggle Pill */}
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                          <div>
+                            <span className="text-slate-500 text-[11px] block">Anonymous Patient Log:</span>
+                            <span className="font-mono font-bold text-blue-900">GHV-GMB-8492</span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setHeroIntakeVerified(!heroIntakeVerified);
+                              showToast(
+                                !heroIntakeVerified ? "Dose Verified!" : "Intake Reset",
+                                !heroIntakeVerified
+                                  ? "Morning ARV logged for patient GHV-GMB-8492"
+                                  : "Reset patient intake status",
+                                "success"
+                              );
+                            }}
+                            className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
+                              heroIntakeVerified
+                                ? "bg-emerald-600 text-white shadow-xs"
+                                : "bg-amber-400 hover:bg-amber-500 text-slate-950"
+                            }`}
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>{heroIntakeVerified ? "Dose Logged (8:00 AM)" : "Verify Dose Intake"}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ---------------- MODE 2: INTERACTIVE USSD FEATURE PHONE KEYPAD ---------------- */}
+                {heroDisplayMode === "ussd" && (
+                  <div className="p-5 rounded-3xl bg-white border-2 border-slate-200/90 shadow-2xl space-y-4">
                     <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-xs">
                       <div className="flex items-center gap-1.5 font-bold text-slate-700">
                         <Radio className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
@@ -812,7 +899,6 @@ export default function GoHIVLandingPage() {
 
                     {/* USSD Monospace Screen */}
                     <div className="bg-slate-950 rounded-2xl p-4 text-amber-300 font-mono text-xs shadow-inner border border-slate-800 min-h-[170px] flex flex-col justify-between">
-                      {/* Screen 1: Dialpad State */}
                       {ussdScreen === "dialpad" && (
                         <div className="space-y-3 py-2">
                           <p className="text-slate-400 text-[11px]">Ready to dial Gombe USSD Gateway:</p>
@@ -820,12 +906,11 @@ export default function GoHIVLandingPage() {
                             {ussdDialInput || "Enter code"}
                           </div>
                           <p className="text-[10px] text-slate-500 text-center">
-                            Press [CALL / SEND] below to initiate session
+                            Press [DIAL *384*44#] below to start session
                           </p>
                         </div>
                       )}
 
-                      {/* Screen 2: Main Menu */}
                       {ussdScreen === "mainMenu" && (
                         <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
                           <p className="text-amber-300 font-bold">
@@ -838,7 +923,6 @@ export default function GoHIVLandingPage() {
                         </div>
                       )}
 
-                      {/* Screen 3: Risk Assessment Question */}
                       {ussdScreen === "riskQ1" && (
                         <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
                           <p className="text-sky-300 font-bold">[Step 1/2] Confidential Screen:</p>
@@ -849,7 +933,6 @@ export default function GoHIVLandingPage() {
                         </div>
                       )}
 
-                      {/* Screen 4: Risk Assessment Result Voucher */}
                       {ussdScreen === "riskResult" && (
                         <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
                           <p className="text-emerald-400 font-bold">✓ Test Voucher Issued!</p>
@@ -863,7 +946,6 @@ export default function GoHIVLandingPage() {
                         </div>
                       )}
 
-                      {/* Screen 5: Clinic Select */}
                       {ussdScreen === "clinicSelect" && (
                         <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
                           <p className="text-sky-300 font-bold">Select Your Local Area:</p>
@@ -874,7 +956,6 @@ export default function GoHIVLandingPage() {
                         </div>
                       )}
 
-                      {/* Screen 6: Clinic Result */}
                       {ussdScreen === "clinicResult" && (
                         <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
                           <p className="text-emerald-400 font-bold">Nearest Active Center:</p>
@@ -884,7 +965,6 @@ export default function GoHIVLandingPage() {
                         </div>
                       )}
 
-                      {/* Screen 7: Meds Confirm */}
                       {ussdScreen === "medsConfirm" && (
                         <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
                           <p className="text-emerald-400 font-bold">Daily ARV Check-In:</p>
@@ -895,7 +975,6 @@ export default function GoHIVLandingPage() {
                         </div>
                       )}
 
-                      {/* Screen 8: Caregiver */}
                       {ussdScreen === "caregiver" && (
                         <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
                           <p className="text-amber-300 font-bold">Caregiver Mode (Yara):</p>
@@ -905,14 +984,13 @@ export default function GoHIVLandingPage() {
                         </div>
                       )}
 
-                      {/* Bottom action status inside screen */}
                       <div className="pt-2 border-t border-slate-800 flex justify-between text-[10px] text-slate-400">
                         <span>{ussdSessionActive ? "🟢 SESSION ACTIVE" : "⚪ STANDBY"}</span>
                         <span>0 AIRTIME DEDUCTED</span>
                       </div>
                     </div>
 
-                    {/* Interactive Hardware-style Keypad */}
+                    {/* Hardware Keypad */}
                     <div className="grid grid-cols-3 gap-2 pt-1 font-mono">
                       {["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"].map((key) => (
                         <button
@@ -926,7 +1004,7 @@ export default function GoHIVLandingPage() {
                       ))}
                     </div>
 
-                    {/* USSD Action Buttons */}
+                    {/* Action buttons */}
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       {!ussdSessionActive ? (
                         <button
@@ -961,111 +1039,6 @@ export default function GoHIVLandingPage() {
                         <span>MENU</span>
                       </button>
                     </div>
-                  </div>
-                )}
-
-                {/* ----------------- MODE B: SMARTPHONE / CHW TABLET SIMULATOR ----------------- */}
-                {activeDeviceView === "smart" && (
-                  <div className="space-y-4">
-                    {/* Tablet Header with Live Offline Mode Toggle */}
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                      <div>
-                        <p className="text-xs font-bold text-blue-950">CHEW Field Terminal</p>
-                        <p className="text-[10px] text-slate-500">Gombe Health Extension Worker</p>
-                      </div>
-
-                      {/* Interactive Offline Switch */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsSimulatedOffline(!isSimulatedOffline);
-                          showToast(
-                            !isSimulatedOffline ? "Offline Mode Triggered" : "Online Mode Restored",
-                            !isSimulatedOffline
-                              ? "Transactions will store in local SQLite encrypted queue"
-                              : "Connected to Gombe Health Cloud",
-                            !isSimulatedOffline ? "warning" : "success"
-                          );
-                        }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                          isSimulatedOffline
-                            ? "bg-amber-100 text-amber-900 border-amber-300"
-                            : "bg-emerald-100 text-emerald-900 border-emerald-300"
-                        }`}
-                      >
-                        {isSimulatedOffline ? (
-                          <>
-                            <WifiOff className="w-3.5 h-3.5 text-amber-600" />
-                            <span>Simulate: Offline</span>
-                          </>
-                        ) : (
-                          <>
-                            <Wifi className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>Connected (Online)</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Patient Card Preview */}
-                    <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white relative">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-mono uppercase tracking-wider text-amber-300 bg-blue-900 px-2 py-0.5 rounded">
-                          Token: GHV-GMB-8492
-                        </span>
-                        <span className="text-[10px] text-blue-200">Stage: Viral Suppression</span>
-                      </div>
-                      <div className="mt-3">
-                        <p className="text-lg font-bold text-white">Daily ARV Regimen (TLD)</p>
-                        <p className="text-xs text-blue-200 mt-0.5">Next Refill: In 14 Days · PHC Pantami</p>
-                      </div>
-
-                      {/* Pill Intake Toggle Action */}
-                      <div className="mt-4 pt-3 border-t border-blue-800/80 flex items-center justify-between">
-                        <span className="text-xs text-slate-200">Today&apos;s Intake Status:</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIntakeLoggedToday(!intakeLoggedToday);
-                            if (!intakeLoggedToday) {
-                              setQueuedSyncRecords((prev) => prev + 1);
-                              showToast("Dose Confirmed", "Patient adherence logged for today", "success");
-                            }
-                          }}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                            intakeLoggedToday
-                              ? "bg-emerald-500 text-white shadow-md"
-                              : "bg-amber-400 hover:bg-amber-500 text-slate-950"
-                          }`}
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                          <span>{intakeLoggedToday ? "Logged: Taken" : "Mark Dose Taken"}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Offline Sync Buffer Box */}
-                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
-                      <div>
-                        <p className="font-bold text-slate-800">
-                          {queuedSyncRecords} Offline Records Queued
-                        </p>
-                        <p className="text-[11px] text-slate-500">Encrypted in local device storage</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleTriggerSync}
-                        disabled={syncingAnimation}
-                        className="px-3 py-1.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-bold flex items-center gap-1.5 text-xs transition-all disabled:opacity-50"
-                      >
-                        <RefreshCw className={`w-3.5 h-3.5 ${syncingAnimation ? "animate-spin" : ""}`} />
-                        <span>Sync Now</span>
-                      </button>
-                    </div>
-
-                    <p className="text-[11px] text-slate-500 text-center">
-                      Allows healthcare workers to document patient care in remote wards without cell tower reception.
-                    </p>
                   </div>
                 )}
               </div>
@@ -1165,7 +1138,6 @@ export default function GoHIVLandingPage() {
                   </div>
                 </div>
 
-                {/* Interactive Voucher Generator Preview */}
                 <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-md space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <span className="text-xs font-bold text-slate-900">Live Voucher Generator</span>
@@ -1229,7 +1201,6 @@ export default function GoHIVLandingPage() {
                   </div>
                 </div>
 
-                {/* Interactive SMS Simulator Sandbox */}
                 <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-md space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <span className="text-xs font-bold text-slate-900">Trigger Sample SMS</span>
@@ -1304,7 +1275,6 @@ export default function GoHIVLandingPage() {
                   </div>
                 </div>
 
-                {/* Interactive Caregiver Multi-Child Card */}
                 <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-md space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <span className="text-xs font-bold text-slate-900">Guardian Ward Adherence</span>
@@ -1413,7 +1383,6 @@ export default function GoHIVLandingPage() {
               </div>
             </div>
 
-            {/* Visual 1: Dual Device Illustration */}
             <div className="lg:col-span-6">
               <div className="relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-blue-900 via-blue-950 to-slate-900 text-white shadow-2xl border border-blue-800/40">
                 <div className="flex items-center justify-between pb-4 border-b border-blue-800/60 text-xs">
@@ -1482,7 +1451,6 @@ export default function GoHIVLandingPage() {
 
           {/* Feature 2: Privacy by Design WITH INTERACTIVE HASHER PLAYGROUND */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Visual 2: Interactive Token Playground */}
             <div className="lg:col-span-6 order-2 lg:order-1">
               <div className="p-6 sm:p-8 rounded-3xl bg-white border-2 border-slate-200/90 shadow-xl space-y-5">
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -1547,7 +1515,6 @@ export default function GoHIVLandingPage() {
               </div>
             </div>
 
-            {/* Text 2 */}
             <div className="lg:col-span-6 space-y-6 order-1 lg:order-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-100 text-emerald-900 text-xs font-bold">
                 <Lock className="w-4 h-4 text-emerald-700" />
@@ -1634,7 +1601,6 @@ export default function GoHIVLandingPage() {
               </div>
             </div>
 
-            {/* Visual 3: Working Hausa Audio Player Simulator */}
             <div className="lg:col-span-6">
               <div className="p-6 sm:p-8 rounded-3xl bg-white border-2 border-slate-200/90 shadow-xl space-y-5">
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -1654,7 +1620,6 @@ export default function GoHIVLandingPage() {
                   </span>
                 </div>
 
-                {/* Simulated Hausa message bubble */}
                 <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-2">
                   <div className="flex items-center justify-between text-xs text-slate-400">
                     <span>Sakon GoHIV Gombe</span>
@@ -1670,7 +1635,6 @@ export default function GoHIVLandingPage() {
                   </p>
                 </div>
 
-                {/* Interactive IVR Voice-Note Audio Player */}
                 <div className="p-4 rounded-2xl bg-sky-50 border border-sky-200/80 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -1699,7 +1663,6 @@ export default function GoHIVLandingPage() {
                     </span>
                   </div>
 
-                  {/* Dynamic Progress Bar */}
                   <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                     <div
                       className="bg-blue-600 h-full transition-all duration-300"
@@ -1718,7 +1681,7 @@ export default function GoHIVLandingPage() {
       ========================================================================= */}
       <section
         id="pilot-program"
-        className="py-24 bg-gradient-to-b from-[#08152B] via-[#0F2752] to-[#0A1B39] text-white relative overflow-hidden"
+        className="py-24 bg-gradient-to-b from-[#071329] via-[#0D2040] to-[#091730] text-white relative overflow-hidden"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
           <div className="max-w-3xl mx-auto text-center space-y-4">
