@@ -8,10 +8,8 @@ import {
   Baby,
   Bell,
   Building2,
-  Calendar,
   Check,
   CheckCircle2,
-  ChevronDown,
   ChevronRight,
   Clock,
   Copy,
@@ -26,11 +24,9 @@ import {
   MapPin,
   Menu,
   MessageSquare,
-  Minus,
   Phone,
   Play,
   Pause,
-  Plus,
   Radio,
   RefreshCw,
   Send,
@@ -39,7 +35,6 @@ import {
   Sliders,
   Smartphone,
   Sparkles,
-  Star,
   Users,
   Volume2,
   Wifi,
@@ -63,7 +58,7 @@ const GOMBE_LGAS_DATA: Record<string, LgaData> = {
   Gombe: {
     name: "Gombe (Metropolitan)",
     facilities: [
-      "State Specialist Hospital Gombe (ART Centre)",
+      "State Specialist Hospital Gombe (Major ART Centre)",
       "Urban Maternity Centre Gombe",
       "Federal Teaching Hospital Gombe (FTHG)",
       "Pantami Primary Health Centre",
@@ -79,7 +74,7 @@ const GOMBE_LGAS_DATA: Record<string, LgaData> = {
     facilities: [
       "Kumo General Hospital",
       "Pindiga Primary Health Centre",
-      "Kashere Health Centre",
+      "Kashere Model Health Centre",
       "Tula Comprehensive Health Post",
     ],
     phcCount: 24,
@@ -210,7 +205,6 @@ const GOMBE_LGAS_DATA: Record<string, LgaData> = {
 
 const GOMBE_LGA_KEYS = Object.keys(GOMBE_LGAS_DATA);
 
-// Toast notification interface
 interface ToastMessage {
   id: number;
   title: string;
@@ -219,7 +213,6 @@ interface ToastMessage {
 }
 
 export default function GoHIVLandingPage() {
-  // Navigation & Language
   const [lang, setLang] = useState<"en" | "ha">("en");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
@@ -231,58 +224,53 @@ export default function GoHIVLandingPage() {
     setToasts((prev) => [...prev, { id, title, description, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 4000);
+    }, 3800);
   };
 
   // ---------------------------------------------------------------------------
-  // HERO SECTION: HERO VIEW SWITCHER (NURSE HERO vs. USSD KEYPAD DIALER)
+  // HERO INTERACTION & CONTINUUM PIPELINE STATE
   // ---------------------------------------------------------------------------
-  const [heroDisplayMode, setHeroDisplayMode] = useState<"nurse" | "ussd">("nurse");
+  const [activePipelineStep, setActivePipelineStep] = useState<number>(1);
+  const [heroUssdOpen, setHeroUssdOpen] = useState(false);
+  const [heroDoseLogged, setHeroDoseLogged] = useState(false);
+  const [heroOfflineMesh, setHeroOfflineMesh] = useState(true);
 
-  // USSD Interactive Machine
+  // USSD Interactive Engine
   const [ussdScreen, setUssdScreen] = useState<string>("dialpad");
   const [ussdDialInput, setUssdDialInput] = useState("*384*44#");
   const [ussdSessionActive, setUssdSessionActive] = useState(false);
   const [generatedVoucher, setGeneratedVoucher] = useState("GHV-GMB-9921");
 
-  // Hero Quick Interaction State
-  const [heroIntakeVerified, setHeroIntakeVerified] = useState(false);
-  const [heroOfflineState, setHeroOfflineState] = useState(true);
-
   // ---------------------------------------------------------------------------
-  // CORE MODULES: INTERACTIVE TABBED PLAYGROUND
+  // CORE MODULES & PLAYGROUNDS
   // ---------------------------------------------------------------------------
   const [activeModuleTab, setActiveModuleTab] = useState<"testing" | "adherence" | "caregiver">("testing");
-
-  // Adherence Live SMS Generator
   const [smsReminderTime, setSmsReminderTime] = useState("08:00 AM");
   const [smsLang, setSmsLang] = useState<"ha" | "en">("ha");
   const [simulatedSmsBanner, setSimulatedSmsBanner] = useState<string | null>(null);
 
-  // Caregiver Mode Interactive Paediatric Schedule
   const [childrenList, setChildrenList] = useState([
-    { id: 1, name: "Amina (4 yrs)", regimen: "DTG 10mg Paediatric Dosing", morningTaken: true, eveningTaken: false },
-    { id: 2, name: "Ibrahim (7 yrs)", regimen: "TLD Junior Dispersible Tab", morningTaken: false, eveningTaken: false },
+    { id: 1, name: "Amina (4 yrs)", regimen: "DTG 10mg Paediatric Dosing", morningTaken: true },
+    { id: 2, name: "Ibrahim (7 yrs)", regimen: "TLD Junior Dispersible Tab", morningTaken: false },
   ]);
 
-  // ---------------------------------------------------------------------------
-  // WHY GOHIV? INTERACTIVE PLAYGROUNDS
-  // ---------------------------------------------------------------------------
+  // NDPR Token Playground
   const [demoPhoneInput, setDemoPhoneInput] = useState("0803 754 4148");
   const [hashedTokenOutput, setHashedTokenOutput] = useState("GHV-GMB-8419-SEC");
 
+  // Hausa Voice-Note Audio Simulator
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [audioPlaybackProgress, setAudioPlaybackProgress] = useState(0);
   const audioIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // ---------------------------------------------------------------------------
-  // PILOT 2027: INTERACTIVE IMPACT CALCULATOR & LGA SELECTOR
+  // PILOT 2027: IMPACT CALCULATOR & LGA PROFILE
   // ---------------------------------------------------------------------------
   const [activeLgaKey, setActiveLgaKey] = useState<string>("Gombe");
   const [pilotUserScale, setPilotUserScale] = useState<number>(5000);
 
   // ---------------------------------------------------------------------------
-  // STAKEHOLDER DEMO MODAL FORM
+  // DEMO MODAL STATE
   // ---------------------------------------------------------------------------
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
@@ -296,7 +284,7 @@ export default function GoHIVLandingPage() {
   });
   const [formSubmitted, setFormSubmitted] = useState(false);
 
-  // Handle USSD Keypad Press
+  // USSD dialpad handler
   const handleKeypadPress = (val: string) => {
     if (!ussdSessionActive) {
       setUssdDialInput((prev) => prev + val);
@@ -389,23 +377,38 @@ export default function GoHIVLandingPage() {
   const currentLga = GOMBE_LGAS_DATA[activeLgaKey] || GOMBE_LGAS_DATA["Gombe"];
 
   return (
-    <div className="relative min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-amber-100 selection:text-blue-950">
+    <div className="relative min-h-screen bg-[#FDFDFC] text-slate-900 font-sans selection:bg-amber-100 selection:text-blue-950 overflow-x-hidden">
+      {/* =========================================================================
+          BACKGROUND AMBIENCE & SUBTLE TECHNICAL GRID
+      ========================================================================= */}
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[650px] bg-gradient-to-b from-blue-100/40 via-sky-50/20 to-transparent blur-3xl" />
+        <div className="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-amber-100/30 rounded-full blur-[140px]" />
+        <div
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, #0f172a 1px, transparent 0)`,
+            backgroundSize: "32px 32px",
+          }}
+        />
+      </div>
+
       {/* =========================================================================
           FLOATING TOAST NOTIFICATION STACK
       ========================================================================= */}
-      <aside aria-label="Notifications" className="fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+      <aside aria-label="Notifications" className="fixed top-24 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-start gap-3 p-3.5 rounded-2xl shadow-xl border text-xs backdrop-blur-md animate-in slide-in-from-top-3 fade-in duration-300 ${
+            className={`pointer-events-auto flex items-start gap-3 p-4 rounded-2xl shadow-2xl border text-xs backdrop-blur-xl animate-in slide-in-from-top-3 fade-in duration-300 ${
               toast.type === "success"
-                ? "bg-slate-900/95 text-white border-emerald-500/50"
+                ? "bg-slate-950/95 text-white border-emerald-500/40"
                 : toast.type === "info"
-                ? "bg-blue-950/95 text-white border-blue-500/50"
-                : "bg-amber-950/95 text-white border-amber-500/50"
+                ? "bg-blue-950/95 text-white border-blue-500/40"
+                : "bg-amber-950/95 text-white border-amber-500/40"
             }`}
           >
-            <div className="p-1 rounded-lg bg-white/10 shrink-0">
+            <div className="p-1 rounded-xl bg-white/10 shrink-0">
               {toast.type === "success" ? (
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               ) : (
@@ -413,26 +416,26 @@ export default function GoHIVLandingPage() {
               )}
             </div>
             <div className="flex-1">
-              <p className="font-bold text-white text-[13px]">{toast.title}</p>
+              <p className="font-extrabold text-white text-[13px]">{toast.title}</p>
               <p className="text-slate-300 text-[11px] mt-0.5 leading-relaxed">{toast.description}</p>
             </div>
           </div>
         ))}
       </aside>
 
-      {/* Simulated Live GSM SMS Banner */}
+      {/* Live GSM SMS Banner overlay */}
       {simulatedSmsBanner && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 animate-in slide-in-from-top-6 duration-300">
-          <div className="p-4 rounded-2xl bg-slate-900 text-white shadow-2xl border-2 border-amber-400 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0 font-bold">
-              <MessageSquare className="w-4 h-4" />
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 animate-in slide-in-from-top-6 duration-300">
+          <div className="p-4 rounded-3xl bg-slate-950 text-white shadow-2xl border-2 border-amber-400 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0 font-bold">
+              <MessageSquare className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between text-[11px] text-amber-300 font-mono mb-1">
                 <span>SIMULATED GSM SMS · TOLL-FREE</span>
                 <span>Just Now</span>
               </div>
-              <p className="text-xs font-medium text-slate-100 leading-snug">{simulatedSmsBanner}</p>
+              <p className="text-xs font-semibold text-slate-100 leading-snug">{simulatedSmsBanner}</p>
             </div>
             <button
               onClick={() => setSimulatedSmsBanner(null)}
@@ -445,218 +448,193 @@ export default function GoHIVLandingPage() {
       )}
 
       {/* =========================================================================
-          1. NAVIGATION BAR
+          1. FLOATING MODERN ISLAND NAVIGATION BAR
       ========================================================================= */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            {/* Logo */}
+      <div className="sticky top-4 z-40 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <header className="rounded-3xl bg-white/85 backdrop-blur-xl border border-slate-200/90 shadow-lg shadow-slate-900/5 px-5 sm:px-6 h-18 flex items-center justify-between transition-all">
+          {/* Logo with pulsing pulse */}
+          <a
+            href="#"
+            className="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-blue-600 rounded-xl"
+            aria-label="GoHIV Link & Adhere Home"
+          >
+            <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950 text-white shadow-md shadow-blue-900/25 group-hover:scale-105 transition-transform">
+              <HeartPulse className="w-6 h-6 text-amber-400" />
+              <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-orange-500 border-2 border-white"></span>
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className="text-2xl font-black tracking-tight text-blue-950">
+                  Go<span className="text-blue-600">HIV</span>
+                </span>
+                <span className="text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 border border-blue-200">
+                  Gombe
+                </span>
+              </div>
+              <span className="text-[11px] font-semibold text-slate-500 tracking-wider">
+                Link &amp; Adhere
+              </span>
+            </div>
+          </a>
+
+          {/* Desktop Nav Links */}
+          <nav className="hidden md:flex items-center gap-8" aria-label="Main Navigation">
             <a
-              href="#"
-              className="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-blue-600 rounded-lg p-1"
-              aria-label="GoHIV Link & Adhere Home"
+              href="#features"
+              className="text-xs uppercase tracking-wider font-bold text-slate-600 hover:text-blue-900 transition-colors"
             >
-              <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950 text-white shadow-md shadow-blue-900/20 group-hover:scale-105 transition-transform">
-                <HeartPulse className="w-6 h-6 text-amber-400" />
-                <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-orange-500 border-2 border-white"></span>
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-2xl font-black tracking-tight text-blue-950">
-                    Go<span className="text-blue-600">HIV</span>
-                  </span>
-                  <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200">
-                    Gombe
-                  </span>
-                </div>
-                <span className="text-xs font-medium text-slate-500 tracking-wider">
-                  Link &amp; Adhere
-                </span>
-              </div>
+              Features
             </a>
+            <a
+              href="#how-it-works"
+              className="text-xs uppercase tracking-wider font-bold text-slate-600 hover:text-blue-900 transition-colors"
+            >
+              How it Works
+            </a>
+            <a
+              href="#pilot-program"
+              className="text-xs uppercase tracking-wider font-bold text-slate-600 hover:text-blue-900 transition-colors"
+            >
+              Pilot Program
+            </a>
+            <a
+              href="#contact"
+              className="text-xs uppercase tracking-wider font-bold text-slate-600 hover:text-blue-900 transition-colors"
+            >
+              Contact
+            </a>
+          </nav>
 
-            {/* Desktop Navigation Links */}
-            <nav className="hidden md:flex items-center gap-8" aria-label="Main Navigation">
-              <a
-                href="#features"
-                className="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors"
-              >
-                Features
-              </a>
-              <a
-                href="#how-it-works"
-                className="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors"
-              >
-                How it Works
-              </a>
-              <a
-                href="#pilot-program"
-                className="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors"
-              >
-                Pilot Program
-              </a>
-              <a
-                href="#contact"
-                className="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors"
-              >
-                Contact
-              </a>
-            </nav>
-
-            {/* Right Action Items */}
-            <div className="hidden md:flex items-center gap-4">
-              <div
-                role="group"
-                aria-label="Language Selector"
-                className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-semibold"
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLang("en");
-                    showToast("Switched to English", "Landing page set to English mode", "info");
-                  }}
-                  className={`px-3 py-1 rounded-lg transition-all ${
-                    lang === "en"
-                      ? "bg-white text-blue-900 shadow-xs font-bold"
-                      : "text-slate-500 hover:text-slate-800"
-                  }`}
-                  aria-pressed={lang === "en"}
-                >
-                  English
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLang("ha");
-                    showToast("An canza zuwa Hausa", "An canza harshen shafin zuwa Harshen Hausa", "info");
-                  }}
-                  className={`px-3 py-1 rounded-lg transition-all ${
-                    lang === "ha"
-                      ? "bg-white text-blue-900 shadow-xs font-bold"
-                      : "text-slate-500 hover:text-slate-800"
-                  }`}
-                  aria-pressed={lang === "ha"}
-                >
-                  Hausa
-                </button>
-              </div>
-
-              {/* Primary CTA Button: Vibrant Orange */}
+          {/* Right Controls */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Language Selector */}
+            <div
+              role="group"
+              aria-label="Language Selector"
+              className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-semibold"
+            >
               <button
                 type="button"
                 onClick={() => {
-                  setFormSubmitted(false);
-                  setIsDemoModalOpen(true);
+                  setLang("en");
+                  showToast("Switched to English", "Landing page set to English mode", "info");
                 }}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 shadow-md shadow-orange-500/25 hover:shadow-lg hover:shadow-orange-500/35 active:scale-[0.98] transition-all focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                className={`px-3 py-1 rounded-lg transition-all ${
+                  lang === "en"
+                    ? "bg-white text-blue-900 shadow-xs font-bold"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
               >
-                <Sparkles className="w-4 h-4 text-amber-200" />
-                <span>Request Demo</span>
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setLang("ha");
+                  showToast("An canza zuwa Hausa", "An canza harshen shafin zuwa Harshen Hausa", "info");
+                }}
+                className={`px-3 py-1 rounded-lg transition-all ${
+                  lang === "ha"
+                    ? "bg-white text-blue-900 shadow-xs font-bold"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                HA
               </button>
             </div>
 
-            {/* Mobile Hamburger Toggle */}
-            <div className="flex md:hidden items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setLang(lang === "en" ? "ha" : "en")}
-                className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200"
-              >
-                {lang.toUpperCase()}
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100"
-              >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
-            </div>
+            {/* Vibrant Orange CTA Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setFormSubmitted(false);
+                setIsDemoModalOpen(true);
+              }}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 shadow-md shadow-orange-500/25 active:scale-[0.98] transition-all"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+              <span>Request Demo</span>
+            </button>
           </div>
-        </div>
 
-        {/* Mobile Slide-down Menu */}
+          {/* Mobile hamburger */}
+          <div className="flex md:hidden items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setLang(lang === "en" ? "ha" : "en")}
+              className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200"
+            >
+              {lang.toUpperCase()}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </header>
+
+        {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-b border-slate-200 bg-white px-4 pt-3 pb-6 space-y-4 shadow-xl">
-            <nav className="flex flex-col space-y-3 font-semibold text-slate-700 text-base">
-              <a
-                href="#features"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-blue-900"
-              >
+          <div className="md:hidden mt-2 rounded-3xl bg-white border border-slate-200 p-5 space-y-4 shadow-2xl">
+            <nav className="flex flex-col space-y-3 font-semibold text-slate-700 text-sm">
+              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-xl hover:bg-slate-50">
                 Features
               </a>
-              <a
-                href="#how-it-works"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-blue-900"
-              >
+              <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-xl hover:bg-slate-50">
                 How it Works
               </a>
-              <a
-                href="#pilot-program"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-blue-900"
-              >
+              <a href="#pilot-program" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-xl hover:bg-slate-50">
                 Pilot Program
               </a>
-              <a
-                href="#contact"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-blue-900"
-              >
+              <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-xl hover:bg-slate-50">
                 Contact
               </a>
             </nav>
-            <div className="pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setIsDemoModalOpen(true);
-                }}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-white bg-orange-600 hover:bg-orange-700 shadow-md text-center"
-              >
-                <Sparkles className="w-4 h-4" />
-                Request Demo
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setIsDemoModalOpen(true);
+              }}
+              className="w-full py-3 rounded-2xl bg-orange-600 text-white font-bold text-center text-sm shadow-md"
+            >
+              Request Demo
+            </button>
           </div>
         )}
-      </header>
+      </div>
 
       {/* =========================================================================
-          2. HERO SECTION WITH REQUESTED HERO IMAGE & TACTILE INTERACTIVITY
+          2. HERO SECTION: NEXT-GEN EDITORIAL BENTO & HEALTH HUD
       ========================================================================= */}
-      <section className="relative overflow-hidden pt-8 pb-16 md:pt-12 md:pb-24 bg-gradient-to-b from-white via-slate-50 to-sky-50/50">
-        {/* Ambient background glows */}
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-3xl pointer-events-none -z-10" />
-        <div className="absolute bottom-10 left-10 w-96 h-96 bg-amber-300/15 rounded-full blur-3xl pointer-events-none -z-10" />
-
+      <section className="relative pt-8 pb-16 md:pt-14 md:pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
-            {/* Left Hero Column: Copy & Dual CTAs */}
-            <div className="lg:col-span-6 flex flex-col items-start text-left space-y-6">
-              {/* Stakeholder & Pilot Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-blue-950 text-xs sm:text-sm font-semibold shadow-xs">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-blue-600 animate-pulse" />
-                <span>
-                  {lang === "en"
-                    ? "Unified HIV Care Continuum · Gombe State Pilot"
-                    : "Hadaddiyar Hanyar Kula da Kanjamau · Jihar Gombe"}
-                </span>
-              </div>
+          {/* Top Tagline Chip */}
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-900 text-white text-xs font-bold shadow-md shadow-blue-900/15">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span>Gombe State Health Continuum Pilot · 2027</span>
+            </div>
+            <div className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-100/90 px-3.5 py-1.5 rounded-full border border-slate-200">
+              <Radio className="w-3.5 h-3.5 text-blue-700" />
+              <span>Offline-First GSM &amp; USSD Agnostic</span>
+            </div>
+          </div>
 
-              {/* Main Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-blue-950 leading-[1.12]">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            {/* Left Hero Content */}
+            <div className="lg:col-span-6 space-y-6">
+              <h1 className="text-4xl sm:text-5xl lg:text-[62px] font-black tracking-tight text-blue-950 leading-[1.08]">
                 {lang === "en" ? (
                   <>
                     Bridging the{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-sky-600">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-sky-500">
                       HIV Care Continuum
                     </span>{" "}
                     in Gombe State.
@@ -664,7 +642,7 @@ export default function GoHIVLandingPage() {
                 ) : (
                   <>
                     Hada Hanyoyin{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-sky-600">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-sky-500">
                       Kula da Kanjamau
                     </span>{" "}
                     a Jihar Gombe.
@@ -672,357 +650,330 @@ export default function GoHIVLandingPage() {
                 )}
               </h1>
 
-              {/* Subheadline */}
-              <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl font-normal">
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-normal max-w-xl">
                 {lang === "en"
                   ? "An offline-first, privacy-centric platform connecting at-risk individuals to testing, care, and daily adherence support—no smartphone or internet required."
                   : "Tsari na zamani mai aiki ba tare da intanet ko wayar zamani ba, yana hada masu bukata da gwaji, magani, da bibiyar shan kwayoyin yau da kullum a asirce."}
               </p>
 
-              {/* Dual Call-to-Action Buttons */}
-              <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-1">
-                {/* Primary CTA: Warm Gold */}
+              {/* Dual CTAs & Quick Dial Trigger */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
                 <a
                   href="#features"
-                  className="inline-flex items-center justify-center gap-3 px-7 py-3.5 rounded-xl font-bold text-base text-slate-950 bg-amber-400 hover:bg-amber-500 active:bg-amber-600 shadow-lg shadow-amber-400/25 hover:shadow-xl transition-all"
+                  className="inline-flex items-center justify-center gap-3 px-7 py-4 rounded-2xl font-bold text-base text-slate-950 bg-amber-400 hover:bg-amber-500 active:bg-amber-600 shadow-xl shadow-amber-400/25 transition-all active:scale-[0.98]"
                 >
                   <span>{lang === "en" ? "View Core Features" : "Duba Muhimman Ayyuka"}</span>
                   <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                 </a>
 
-                {/* Secondary CTA: Outline */}
                 <button
                   type="button"
                   onClick={() => setIsDemoModalOpen(true)}
-                  className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl font-bold text-base text-blue-950 bg-white hover:bg-slate-50 border-2 border-slate-300 hover:border-blue-700 transition-all"
+                  className="inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-2xl font-bold text-base text-blue-950 bg-white hover:bg-slate-50 border-2 border-slate-300 hover:border-blue-700 transition-all shadow-xs"
                 >
                   <HeartHandshake className="w-5 h-5 text-blue-700" />
                   <span>{lang === "en" ? "Partner With Us" : "Yi Hadin Gwiwa da Mu"}</span>
                 </button>
               </div>
 
-              {/* Quick Hero Telemetry Bar */}
-              <div className="w-full grid grid-cols-3 gap-2 pt-2">
-                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-                  <p className="text-xl font-black text-blue-950">5,000+</p>
-                  <p className="text-[11px] font-semibold text-slate-500">Pilot Cohort</p>
+              {/* Continuum Pipeline Interactive Steps Bar */}
+              <div className="p-4 rounded-3xl bg-slate-100/90 border border-slate-200/90 space-y-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-extrabold uppercase tracking-wider text-slate-700">
+                    Live Continuum Pipeline
+                  </span>
+                  <span className="text-blue-700 font-bold">Step {activePipelineStep} of 3</span>
                 </div>
-                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-                  <p className="text-xl font-black text-emerald-600">&gt; 90%</p>
-                  <p className="text-[11px] font-semibold text-slate-500">48h Linkage</p>
-                </div>
-                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-                  <p className="text-xl font-black text-amber-600">11 LGAs</p>
-                  <p className="text-[11px] font-semibold text-slate-500">Gombe Ready</p>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActivePipelineStep(1)}
+                    className={`p-2.5 rounded-2xl text-left transition-all ${
+                      activePipelineStep === 1
+                        ? "bg-white shadow-md text-blue-950 border border-blue-600/30"
+                        : "text-slate-600 hover:bg-white/50"
+                    }`}
+                  >
+                    <p className="text-[10px] uppercase font-bold text-slate-400">01 Risk</p>
+                    <p className="text-xs font-bold truncate">Anonymous Test</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActivePipelineStep(2)}
+                    className={`p-2.5 rounded-2xl text-left transition-all ${
+                      activePipelineStep === 2
+                        ? "bg-white shadow-md text-blue-950 border border-blue-600/30"
+                        : "text-slate-600 hover:bg-white/50"
+                    }`}
+                  >
+                    <p className="text-[10px] uppercase font-bold text-slate-400">02 Link</p>
+                    <p className="text-xs font-bold truncate">&lt; 48h PHC Link</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActivePipelineStep(3)}
+                    className={`p-2.5 rounded-2xl text-left transition-all ${
+                      activePipelineStep === 3
+                        ? "bg-white shadow-md text-blue-950 border border-blue-600/30"
+                        : "text-slate-600 hover:bg-white/50"
+                    }`}
+                  >
+                    <p className="text-[10px] uppercase font-bold text-slate-400">03 Adhere</p>
+                    <p className="text-xs font-bold truncate">Daily SMS / USSD</p>
+                  </button>
                 </div>
               </div>
 
-              {/* Stakeholder Framework Alignment Pill Strip */}
-              <div className="pt-4 w-full border-t border-slate-200/80">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2.5">
-                  Tailored for Seamless Ecosystem Integration With:
+              {/* Stakeholder Framework Alignment Badges */}
+              <div className="pt-2">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5">
+                  Engineered in direct alignment with Gombe State health frameworks:
                 </p>
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-bold shadow-xs">
-                    <Building2 className="w-4 h-4 text-blue-700" />
-                    <span>GOMSACA</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-bold shadow-xs">
-                    <Activity className="w-4 h-4 text-emerald-600" />
-                    <span>SASCP</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-bold shadow-xs">
-                    <ShieldCheck className="w-4 h-4 text-amber-600" />
-                    <span>SFH Nigeria</span>
-                  </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-3 py-1 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-xs flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-blue-700" /> GOMSACA
+                  </span>
+                  <span className="px-3 py-1 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-xs flex items-center gap-1.5">
+                    <Activity className="w-3.5 h-3.5 text-emerald-600" /> SASCP
+                  </span>
+                  <span className="px-3 py-1 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-xs flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-amber-600" /> SFH Nigeria
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Right Hero Column: BEAUTIFUL HERO IMAGE + FLOATING INTERACTIVE WIDGETS */}
-            <div className="lg:col-span-6 relative flex flex-col items-center">
-              {/* Interactive View Mode Switcher */}
-              <div className="w-full max-w-lg flex items-center justify-between p-1.5 mb-3 bg-slate-200/80 rounded-2xl border border-slate-300 text-xs font-bold z-20">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHeroDisplayMode("nurse");
-                    showToast("Clinical Care View", "Viewing Community Health Extension Worker profile", "info");
-                  }}
-                  className={`flex-1 py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
-                    heroDisplayMode === "nurse"
-                      ? "bg-blue-900 text-white shadow-md font-extrabold"
-                      : "text-slate-700 hover:text-slate-900"
-                  }`}
-                >
-                  <Activity className="w-4 h-4 text-amber-400" />
-                  <span>Clinical Health Worker View</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHeroDisplayMode("ussd");
-                    showToast("USSD Keypad Mode", "Feature Phone Dialing Simulator (*384*44#)", "info");
-                  }}
-                  className={`flex-1 py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
-                    heroDisplayMode === "ussd"
-                      ? "bg-blue-900 text-white shadow-md font-extrabold"
-                      : "text-slate-700 hover:text-slate-900"
-                  }`}
-                >
-                  <Smartphone className="w-4 h-4 text-emerald-400" />
-                  <span>Interactive USSD Keypad (*384*44#)</span>
-                </button>
-              </div>
+            {/* Right Hero Visual: MAGAZINE-GRADE HEALTHCARE HUD + NURSE HERO IMAGE */}
+            <div className="lg:col-span-6 relative">
+              {/* Outer Decorative Glow Rings */}
+              <div className="absolute -inset-2 bg-gradient-to-r from-blue-600/15 via-sky-400/15 to-amber-400/15 rounded-[36px] blur-xl -z-10" />
 
-              {/* MAIN HERO CARD CONTAINER */}
-              <div className="w-full max-w-lg relative">
-                {/* ---------------- MODE 1: THE REQUESTED HERO IMAGE WITH FLOATING CARDS ---------------- */}
-                {heroDisplayMode === "nurse" && (
-                  <div className="relative rounded-3xl overflow-hidden shadow-2xl border-2 border-slate-200/90 bg-white group">
-                    {/* The Hero Image from Pinterest Link */}
-                    <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100">
-                      <img
-                        src="/hero-image.jpg"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "https://i.pinimg.com/736x/89/d9/5f/89d95fdc82936e4eceb748c4f444177f.jpg";
-                        }}
-                        alt="Gombe State Community Health Extension Worker supporting HIV care"
-                        className="w-full h-full object-cover object-top filter brightness-[1.02] contrast-[1.03] group-hover:scale-105 transition-transform duration-700"
-                      />
+              {/* The Hero Stage Container */}
+              <div className="relative rounded-[32px] overflow-hidden bg-white border-2 border-slate-200/90 shadow-2xl p-3 sm:p-4">
+                {/* Main Nurse Hero Image with Glass Telemetry Overlay */}
+                <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-900 group">
+                  <img
+                    src="/hero-image.jpg"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "https://i.pinimg.com/736x/89/d9/5f/89d95fdc82936e4eceb748c4f444177f.jpg";
+                    }}
+                    alt="Gombe State Community Health Extension Worker supporting HIV continuum of care"
+                    className="w-full h-full object-cover object-top filter brightness-[1.03] contrast-[1.02] group-hover:scale-105 transition-transform duration-700"
+                  />
 
-                      {/* Subtle gradient vignette at bottom for text contrast */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent pointer-events-none" />
+                  {/* Gradient vignette for legibility */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent pointer-events-none" />
 
-                      {/* Floating Badge Top-Left: Offline-First Node */}
-                      <div className="absolute top-4 left-4 z-10">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setHeroOfflineState(!heroOfflineState);
-                            showToast(
-                              !heroOfflineState ? "Offline Engine Active" : "Online Mode",
-                              !heroOfflineState
-                                ? "Zero-Data USSD/SMS fallback mode is on"
-                                : "Syncing to Gombe State Health Cloud",
-                              "info"
-                            );
-                          }}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 backdrop-blur-md text-white text-xs font-bold border border-slate-700 shadow-lg hover:scale-105 transition-all"
-                        >
-                          <span className={`w-2.5 h-2.5 rounded-full ${heroOfflineState ? "bg-emerald-400 animate-pulse" : "bg-sky-400"}`} />
-                          <span>{heroOfflineState ? "Offline-First Sync: Active" : "Online Cloud Sync"}</span>
-                        </button>
-                      </div>
-
-                      {/* Floating Quick Dial Button Top-Right */}
-                      <div className="absolute top-4 right-4 z-10">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setHeroDisplayMode("ussd");
-                            setUssdSessionActive(true);
-                            setUssdScreen("mainMenu");
-                            showToast("Dialed *384*44#", "Opened interactive USSD feature phone session", "success");
-                          }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-400 text-slate-950 text-xs font-black shadow-lg hover:bg-amber-300 hover:scale-105 active:scale-95 transition-all"
-                        >
-                          <Phone className="w-3.5 h-3.5 fill-current" />
-                          <span>Dial *384*44#</span>
-                        </button>
-                      </div>
-
-                      {/* Floating Card at Bottom: Interactive Telemetry & Health Worker Profile */}
-                      <div className="absolute bottom-4 left-4 right-4 z-10 p-4 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-2xl text-slate-900 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center font-bold">
-                              <HeartPulse className="w-4 h-4 text-blue-700" />
-                            </div>
-                            <div>
-                              <p className="text-xs font-extrabold text-blue-950">Gombe State Healthcare Extension</p>
-                              <p className="text-[11px] text-slate-500">CHEW Outreach · State Specialist Hospital</p>
-                            </div>
-                          </div>
-                          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
-                            Verified
-                          </span>
-                        </div>
-
-                        {/* Interactive Adherence Toggle Pill */}
-                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                          <div>
-                            <span className="text-slate-500 text-[11px] block">Anonymous Patient Log:</span>
-                            <span className="font-mono font-bold text-blue-900">GHV-GMB-8492</span>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setHeroIntakeVerified(!heroIntakeVerified);
-                              showToast(
-                                !heroIntakeVerified ? "Dose Verified!" : "Intake Reset",
-                                !heroIntakeVerified
-                                  ? "Morning ARV logged for patient GHV-GMB-8492"
-                                  : "Reset patient intake status",
-                                "success"
-                              );
-                            }}
-                            className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
-                              heroIntakeVerified
-                                ? "bg-emerald-600 text-white shadow-xs"
-                                : "bg-amber-400 hover:bg-amber-500 text-slate-950"
-                            }`}
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                            <span>{heroIntakeVerified ? "Dose Logged (8:00 AM)" : "Verify Dose Intake"}</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                  {/* Top Floating Glass Badge: Offline-First Status */}
+                  <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHeroOfflineMesh(!heroOfflineMesh);
+                        showToast(
+                          !heroOfflineMesh ? "Offline Engine Active" : "Online Mode",
+                          !heroOfflineMesh
+                            ? "Zero-Data USSD/SMS fallback mode is on"
+                            : "Syncing to Gombe State Health Cloud",
+                          "info"
+                        );
+                      }}
+                      className="px-3.5 py-1.5 rounded-full bg-slate-950/80 backdrop-blur-xl border border-white/20 text-white text-xs font-bold flex items-center gap-2 shadow-lg hover:scale-105 transition-all"
+                    >
+                      <span className={`w-2.5 h-2.5 rounded-full ${heroOfflineMesh ? "bg-emerald-400 animate-pulse" : "bg-sky-400"}`} />
+                      <span>{heroOfflineMesh ? "Offline-First Sync: Active" : "Online Cloud Sync"}</span>
+                    </button>
                   </div>
-                )}
 
-                {/* ---------------- MODE 2: INTERACTIVE USSD FEATURE PHONE KEYPAD ---------------- */}
-                {heroDisplayMode === "ussd" && (
-                  <div className="p-5 rounded-3xl bg-white border-2 border-slate-200/90 shadow-2xl space-y-4">
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-xs">
-                      <div className="flex items-center gap-1.5 font-bold text-slate-700">
-                        <Radio className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-                        <span>Gombe 2G GSM Net</span>
+                  {/* Top-Right Quick Dial Button */}
+                  <div className="absolute top-4 right-4 z-10">
+                    <button
+                      type="button"
+                      onClick={() => setHeroUssdOpen(!heroUssdOpen)}
+                      className="px-3.5 py-1.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-xl hover:scale-105 active:scale-95 transition-all"
+                    >
+                      <Phone className="w-3.5 h-3.5 fill-current" />
+                      <span>{heroUssdOpen ? "Close Dialer" : "Dial *384*44#"}</span>
+                    </button>
+                  </div>
+
+                  {/* Bottom HUD: Live Clinic Card */}
+                  <div className="absolute bottom-4 left-4 right-4 z-10 p-4 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/40 shadow-2xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-blue-900 text-white flex items-center justify-center font-bold">
+                          <HeartPulse className="w-5 h-5 text-amber-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-blue-950">Gombe Health Extension Portal</p>
+                          <p className="text-[11px] text-slate-500">CHEW Outreach · Pantami &amp; State Hospital</p>
+                        </div>
                       </div>
-                      <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        Zero Airtime · Toll Free
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                        11 LGAs Ready
                       </span>
                     </div>
 
-                    {/* USSD Monospace Screen */}
-                    <div className="bg-slate-950 rounded-2xl p-4 text-amber-300 font-mono text-xs shadow-inner border border-slate-800 min-h-[170px] flex flex-col justify-between">
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <div>
+                        <span className="text-slate-400 text-[10px] block font-mono">TOKEN: GHV-GMB-8492</span>
+                        <span className="font-bold text-blue-950">
+                          {heroDoseLogged ? "✓ Dose Confirmed Today" : "Pending Morning ARV Dose"}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHeroDoseLogged(!heroDoseLogged);
+                          showToast(
+                            !heroDoseLogged ? "Dose Verified!" : "Intake Reset",
+                            !heroDoseLogged
+                              ? "Morning ARV logged for patient GHV-GMB-8492"
+                              : "Reset patient intake status",
+                            "success"
+                          );
+                        }}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                          heroDoseLogged
+                            ? "bg-emerald-600 text-white shadow-xs"
+                            : "bg-amber-400 hover:bg-amber-500 text-slate-950 shadow-md"
+                        }`}
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>{heroDoseLogged ? "Logged (8:00 AM)" : "Verify Intake"}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SLIDE-DOWN USSD PHONE MODAL OVERLAY */}
+                {heroUssdOpen && (
+                  <div className="mt-3 p-4 rounded-2xl bg-slate-950 text-white border border-slate-800 animate-in fade-in slide-in-from-top-2 duration-300 space-y-3">
+                    <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-800">
+                      <span className="text-emerald-400 font-mono font-bold flex items-center gap-1.5">
+                        <Smartphone className="w-3.5 h-3.5" /> USSD Bridge (*384*44#)
+                      </span>
+                      <button
+                        onClick={() => setHeroUssdOpen(false)}
+                        className="text-slate-400 hover:text-white"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* USSD Screen */}
+                    <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 font-mono text-xs text-amber-300 min-h-[120px] flex flex-col justify-between">
                       {ussdScreen === "dialpad" && (
-                        <div className="space-y-3 py-2">
-                          <p className="text-slate-400 text-[11px]">Ready to dial Gombe USSD Gateway:</p>
-                          <div className="p-3 bg-slate-900 rounded-xl text-center text-xl font-bold text-emerald-400 tracking-wider">
-                            {ussdDialInput || "Enter code"}
-                          </div>
-                          <p className="text-[10px] text-slate-500 text-center">
-                            Press [DIAL *384*44#] below to start session
-                          </p>
+                        <div>
+                          <p className="text-slate-400 text-[11px]">Dialing USSD Gateway:</p>
+                          <p className="text-lg font-bold text-emerald-400 my-1">{ussdDialInput}</p>
+                          <p className="text-[10px] text-slate-500">Press [SEND] below</p>
                         </div>
                       )}
 
                       {ussdScreen === "mainMenu" && (
-                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
-                          <p className="text-amber-300 font-bold">
-                            {lang === "en" ? "Maraba / Welcome to GoHIV Gombe:" : "Maraba da zuwa GoHIV Gombe:"}
-                          </p>
-                          <p>1. {lang === "en" ? "Anonymous Risk Test" : "Binciken Hatsarin Kamuwa"}</p>
-                          <p>2. {lang === "en" ? "Nearest Clinic Locator" : "Gano Cibiyar Karbar Magani"}</p>
-                          <p>3. {lang === "en" ? "Daily ARV Dose Log" : "Taimakon Shan Magani"}</p>
-                          <p>4. {lang === "en" ? "Caregiver / Paediatric Mode" : "Yanayin Kula da Yara"}</p>
+                        <div className="space-y-1 text-slate-100">
+                          <p className="text-amber-300 font-bold">Maraba da GoHIV Gombe:</p>
+                          <p>1. Anonymous Risk Test</p>
+                          <p>2. Locate Nearest ART Center</p>
+                          <p>3. Daily ARV Dose Log</p>
+                          <p>4. Caregiver / Paediatric Mode</p>
                         </div>
                       )}
 
                       {ussdScreen === "riskQ1" && (
-                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
-                          <p className="text-sky-300 font-bold">[Step 1/2] Confidential Screen:</p>
-                          <p>Have you taken an HIV test in the last 6 months?</p>
+                        <div className="space-y-1 text-slate-100">
+                          <p className="text-sky-300 font-bold">Step 1: Test in last 6 months?</p>
                           <p className="text-amber-300">1. Yes / Ee</p>
                           <p className="text-amber-300">2. No / A&apos;a</p>
-                          <p className="text-[10px] text-slate-400 mt-2">Press [1] or [2] on keypad</p>
                         </div>
                       )}
 
                       {ussdScreen === "riskResult" && (
-                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
+                        <div className="space-y-1 text-slate-100">
                           <p className="text-emerald-400 font-bold">✓ Test Voucher Issued!</p>
-                          <p className="text-slate-300 text-[11px]">
+                          <p className="text-xs">
                             Private Code: <span className="text-amber-300 font-bold">{generatedVoucher}</span>
                           </p>
-                          <p className="text-[11px] text-slate-400">
-                            Present this confidential voucher at any Gombe PHC for priority free screening.
-                          </p>
-                          <p className="text-xs text-sky-400 font-bold mt-2">Press [0] for Main Menu</p>
+                          <p className="text-[10px] text-slate-400">Present at any Gombe PHC for priority free test</p>
                         </div>
                       )}
 
                       {ussdScreen === "clinicSelect" && (
-                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
-                          <p className="text-sky-300 font-bold">Select Your Local Area:</p>
-                          <p>1. Gombe Central / Spec Hospital</p>
-                          <p>2. Akko / Kumo General</p>
-                          <p>3. Yamaltu/Deba Cottage</p>
-                          <p className="text-[10px] text-slate-400">Press [1], [2], or [3]</p>
+                        <div className="space-y-1 text-slate-100">
+                          <p className="text-sky-300 font-bold">Select Area:</p>
+                          <p>1. Gombe Specialist Hospital</p>
+                          <p>2. Kumo General Hospital</p>
+                          <p>3. Deba Cottage Hospital</p>
                         </div>
                       )}
 
                       {ussdScreen === "clinicResult" && (
-                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
-                          <p className="text-emerald-400 font-bold">Nearest Active Center:</p>
-                          <p className="text-amber-300 font-bold">State Specialist Hospital Gombe</p>
+                        <div className="space-y-1 text-slate-100">
+                          <p className="text-emerald-400 font-bold">State Specialist Hospital Gombe</p>
                           <p className="text-[11px] text-slate-300">Open Mon-Fri: 8am - 4pm · Walk-ins Welcome</p>
-                          <p className="text-xs text-sky-400 font-bold mt-2">Press [0] for Main Menu</p>
                         </div>
                       )}
 
                       {ussdScreen === "medsConfirm" && (
-                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
+                        <div className="space-y-1 text-slate-100">
                           <p className="text-emerald-400 font-bold">Daily ARV Check-In:</p>
                           <p>Did you take your scheduled morning dose today?</p>
                           <p className="text-amber-300">1. Ee (Taken) · Logged</p>
-                          <p className="text-amber-300">2. A&apos;a (Need Refill Alert)</p>
-                          <p className="text-xs text-sky-400 font-bold mt-2">Press [1] to confirm</p>
                         </div>
                       )}
 
                       {ussdScreen === "caregiver" && (
-                        <div className="space-y-1.5 py-1 text-slate-100 animate-in fade-in">
+                        <div className="space-y-1 text-slate-100">
                           <p className="text-amber-300 font-bold">Caregiver Mode (Yara):</p>
                           <p>1. Amina (4 yrs) - Dose Due</p>
                           <p>2. Ibrahim (7 yrs) - Taken</p>
-                          <p className="text-xs text-sky-400 font-bold mt-2">Press [0] for Main Menu</p>
                         </div>
                       )}
 
                       <div className="pt-2 border-t border-slate-800 flex justify-between text-[10px] text-slate-400">
                         <span>{ussdSessionActive ? "🟢 SESSION ACTIVE" : "⚪ STANDBY"}</span>
-                        <span>0 AIRTIME DEDUCTED</span>
+                        <span>0 AIRTIME FEE</span>
                       </div>
                     </div>
 
-                    {/* Hardware Keypad */}
-                    <div className="grid grid-cols-3 gap-2 pt-1 font-mono">
-                      {["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"].map((key) => (
+                    {/* Keypad Buttons */}
+                    <div className="grid grid-cols-6 gap-1 font-mono text-xs">
+                      {["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"].map((k) => (
                         <button
-                          key={key}
+                          key={k}
                           type="button"
-                          onClick={() => handleKeypadPress(key)}
-                          className="h-10 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-blue-100 text-slate-800 font-bold text-sm shadow-xs transition-all flex items-center justify-center active:scale-95"
+                          onClick={() => handleKeypadPress(k)}
+                          className="py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-center font-bold active:scale-95 transition-all"
                         >
-                          {key}
+                          {k}
                         </button>
                       ))}
                     </div>
 
-                    {/* Action buttons */}
-                    <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
                       {!ussdSessionActive ? (
                         <button
                           type="button"
                           onClick={handleDialSend}
-                          className="w-full py-2.5 px-4 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-700 shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all"
+                          className="py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold flex items-center justify-center gap-1.5"
                         >
-                          <Phone className="w-4 h-4" />
-                          <span>DIAL *384*44#</span>
+                          <Phone className="w-3.5 h-3.5" />
+                          <span>SEND</span>
                         </button>
                       ) : (
                         <button
                           type="button"
                           onClick={handleEndUssd}
-                          className="w-full py-2.5 px-4 rounded-xl font-bold text-xs text-white bg-rose-600 hover:bg-rose-700 shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all"
+                          className="py-2 bg-rose-600 hover:bg-rose-500 rounded-xl font-bold flex items-center justify-center gap-1.5"
                         >
-                          <X className="w-4 h-4" />
-                          <span>END SESSION</span>
+                          <X className="w-3.5 h-3.5" />
+                          <span>END</span>
                         </button>
                       )}
 
@@ -1031,9 +982,8 @@ export default function GoHIVLandingPage() {
                         onClick={() => {
                           setUssdScreen("mainMenu");
                           setUssdSessionActive(true);
-                          showToast("Main Menu", "Returned to USSD root menu", "info");
                         }}
-                        className="w-full py-2.5 px-4 rounded-xl font-bold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                        className="py-2 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold flex items-center justify-center gap-1.5"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
                         <span>MENU</span>
@@ -1048,30 +998,29 @@ export default function GoHIVLandingPage() {
       </section>
 
       {/* =========================================================================
-          3. CORE MODULES: WITH INTERACTIVE DEMO TABS
+          3. CORE MODULES: ASYMMETRICAL INTERACTIVE BENTO GRID
       ========================================================================= */}
       <section id="features" className="py-20 bg-white border-y border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-blue-900 text-xs font-bold uppercase tracking-wider">
-              <Zap className="w-3.5 h-3.5 text-blue-600" />
-              Interactive Continuum Explorer
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-blue-950 tracking-tight">
+          <div className="text-center max-w-3xl mx-auto mb-14 space-y-3">
+            <span className="text-xs font-extrabold uppercase tracking-widest text-blue-700 bg-sky-100 px-3.5 py-1.5 rounded-full">
+              Full-Spectrum Healthcare Modules
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-blue-950 tracking-tight">
               Three Pillars for Zero Lost-to-Follow-Up
             </h2>
-            <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
-              Explore how GoHIV solves testing linkage, daily ARV adherence, and paediatric caregiver
-              support in rural and peri-urban Gombe.
+            <p className="text-slate-600 text-base sm:text-lg">
+              Engineered specifically for low-connectivity environments in northern Nigeria—ensuring
+              every patient stays connected from testing to viral suppression.
             </p>
           </div>
 
           {/* Module Selector Tabs */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
             <button
               type="button"
               onClick={() => setActiveModuleTab("testing")}
-              className={`px-5 py-2.5 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 ${
+              className={`px-5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${
                 activeModuleTab === "testing"
                   ? "bg-blue-900 text-white shadow-lg shadow-blue-900/20 scale-105"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -1083,7 +1032,7 @@ export default function GoHIVLandingPage() {
             <button
               type="button"
               onClick={() => setActiveModuleTab("adherence")}
-              className={`px-5 py-2.5 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 ${
+              className={`px-5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${
                 activeModuleTab === "adherence"
                   ? "bg-blue-900 text-white shadow-lg shadow-blue-900/20 scale-105"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -1095,7 +1044,7 @@ export default function GoHIVLandingPage() {
             <button
               type="button"
               onClick={() => setActiveModuleTab("caregiver")}
-              className={`px-5 py-2.5 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 ${
+              className={`px-5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${
                 activeModuleTab === "caregiver"
                   ? "bg-blue-900 text-white shadow-lg shadow-blue-900/20 scale-105"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -1106,12 +1055,12 @@ export default function GoHIVLandingPage() {
             </button>
           </div>
 
-          {/* Dynamic Module Showcase Box */}
-          <div className="p-8 sm:p-12 rounded-3xl bg-slate-50 border-2 border-slate-200/90 shadow-xl">
-            {/* MODULE 1: TESTING & LINKAGE */}
+          {/* Interactive Bento Box Container */}
+          <div className="p-8 sm:p-12 rounded-[32px] bg-slate-50 border-2 border-slate-200/90 shadow-xl">
+            {/* MODULE 1 */}
             {activeModuleTab === "testing" && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-in fade-in duration-300">
-                <div className="lg:col-span-7 space-y-5">
+                <div className="lg:col-span-7 space-y-4">
                   <span className="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
                     Module 01: Testing &amp; Linkage
                   </span>
@@ -1123,13 +1072,13 @@ export default function GoHIVLandingPage() {
                     cases to care. Eliminates social fear through zero-identity self-screening.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                    <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+                    <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
                       <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                       <span className="text-xs font-semibold text-slate-800">
                         Confidential self-risk evaluation via USSD
                       </span>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+                    <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
                       <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                       <span className="text-xs font-semibold text-slate-800">
                         Offline mapping of 11 Gombe LGAs ART clinics
@@ -1145,7 +1094,7 @@ export default function GoHIVLandingPage() {
                       Fast-Track Link
                     </span>
                   </div>
-                  <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-center space-y-2">
+                  <div className="p-5 rounded-2xl bg-blue-50 border border-blue-200 text-center space-y-2">
                     <p className="text-xs text-blue-900 font-semibold">Anonymous Client Linkage Token:</p>
                     <p className="text-2xl font-mono font-black text-blue-950 tracking-wider">
                       {generatedVoucher}
@@ -1161,7 +1110,7 @@ export default function GoHIVLandingPage() {
                       setGeneratedVoucher(newVoucher);
                       showToast("New Voucher Created", newVoucher, "success");
                     }}
-                    className="w-full py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 font-bold text-xs text-white transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3 rounded-2xl bg-blue-900 hover:bg-blue-800 font-bold text-xs text-white transition-all flex items-center justify-center gap-2 shadow-md"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     <span>Generate New Test Voucher</span>
@@ -1170,10 +1119,10 @@ export default function GoHIVLandingPage() {
               </div>
             )}
 
-            {/* MODULE 2: ADHERENCE & SUPPORT */}
+            {/* MODULE 2 */}
             {activeModuleTab === "adherence" && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-in fade-in duration-300">
-                <div className="lg:col-span-7 space-y-5">
+                <div className="lg:col-span-7 space-y-4">
                   <span className="text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-3 py-1 rounded-full">
                     Module 02: Adherence &amp; Support
                   </span>
@@ -1186,13 +1135,13 @@ export default function GoHIVLandingPage() {
                     cost.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                    <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+                    <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
                       <CheckCircle2 className="w-5 h-5 text-amber-600 shrink-0" />
                       <span className="text-xs font-semibold text-slate-800">
                         Discreet dosing prompts in Hausa &amp; English
                       </span>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+                    <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
                       <CheckCircle2 className="w-5 h-5 text-amber-600 shrink-0" />
                       <span className="text-xs font-semibold text-slate-800">
                         Predictive 7-day clinic stockout alerts
@@ -1214,7 +1163,7 @@ export default function GoHIVLandingPage() {
                       <select
                         value={smsLang}
                         onChange={(e) => setSmsLang(e.target.value as "ha" | "en")}
-                        className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 font-bold"
+                        className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold"
                       >
                         <option value="ha">Hausa (Harshe)</option>
                         <option value="en">English</option>
@@ -1225,7 +1174,7 @@ export default function GoHIVLandingPage() {
                       <select
                         value={smsReminderTime}
                         onChange={(e) => setSmsReminderTime(e.target.value)}
-                        className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 font-bold"
+                        className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold"
                       >
                         <option value="08:00 AM">08:00 AM (Morning)</option>
                         <option value="08:00 PM">08:00 PM (Night)</option>
@@ -1235,7 +1184,7 @@ export default function GoHIVLandingPage() {
                   <button
                     type="button"
                     onClick={handleTriggerLiveSms}
-                    className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 font-bold text-xs text-white shadow-md transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3 rounded-2xl bg-orange-600 hover:bg-orange-700 font-bold text-xs text-white shadow-md transition-all flex items-center justify-center gap-2"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>Send Test SMS to My Screen</span>
@@ -1244,10 +1193,10 @@ export default function GoHIVLandingPage() {
               </div>
             )}
 
-            {/* MODULE 3: CAREGIVER MODE */}
+            {/* MODULE 3 */}
             {activeModuleTab === "caregiver" && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-in fade-in duration-300">
-                <div className="lg:col-span-7 space-y-5">
+                <div className="lg:col-span-7 space-y-4">
                   <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
                     Module 03: Caregiver Mode
                   </span>
@@ -1260,13 +1209,13 @@ export default function GoHIVLandingPage() {
                     Community Health Workers (CHEWs).
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                    <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+                    <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
                       <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                       <span className="text-xs font-semibold text-slate-800">
                         Multi-child dose scheduling &amp; proxy check-in
                       </span>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+                    <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
                       <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                       <span className="text-xs font-semibold text-slate-800">
                         Weight-adjusted paediatric dosage warnings
@@ -1303,7 +1252,7 @@ export default function GoHIVLandingPage() {
                             );
                             showToast("Child Dose Updated", `Updated status for ${child.name}`, "success");
                           }}
-                          className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1 transition-all ${
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-all ${
                             child.morningTaken
                               ? "bg-emerald-600 text-white"
                               : "bg-amber-400 hover:bg-amber-500 text-slate-950"
@@ -1328,10 +1277,10 @@ export default function GoHIVLandingPage() {
       <section id="how-it-works" className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
           <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="text-xs font-bold tracking-widest uppercase text-blue-700 bg-sky-100 px-3 py-1 rounded-full">
+            <span className="text-xs font-extrabold tracking-widest uppercase text-blue-700 bg-sky-100 px-3.5 py-1.5 rounded-full">
               Engineered For Nigeria&apos;s Grassroots
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-blue-950">
+            <h2 className="text-3xl sm:text-4xl font-black text-blue-950">
               Why GoHIV Link &amp; Adhere?
             </h2>
             <p className="text-slate-600 text-base sm:text-lg">
@@ -1384,7 +1333,7 @@ export default function GoHIVLandingPage() {
             </div>
 
             <div className="lg:col-span-6">
-              <div className="relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-blue-900 via-blue-950 to-slate-900 text-white shadow-2xl border border-blue-800/40">
+              <div className="relative p-6 sm:p-8 rounded-[32px] bg-gradient-to-br from-blue-900 via-blue-950 to-slate-900 text-white shadow-2xl border border-blue-800/40">
                 <div className="flex items-center justify-between pb-4 border-b border-blue-800/60 text-xs">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
@@ -1449,10 +1398,10 @@ export default function GoHIVLandingPage() {
             </div>
           </div>
 
-          {/* Feature 2: Privacy by Design WITH INTERACTIVE HASHER PLAYGROUND */}
+          {/* Feature 2: Privacy by Design */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-6 order-2 lg:order-1">
-              <div className="p-6 sm:p-8 rounded-3xl bg-white border-2 border-slate-200/90 shadow-xl space-y-5">
+              <div className="p-6 sm:p-8 rounded-[32px] bg-white border-2 border-slate-200/90 shadow-xl space-y-5">
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                   <div className="flex items-center gap-2">
                     <div className="p-2 rounded-xl bg-emerald-100 text-emerald-800">
@@ -1557,7 +1506,7 @@ export default function GoHIVLandingPage() {
             </div>
           </div>
 
-          {/* Feature 3: Localized for Gombe WITH WORKING AUDIO SIMULATOR */}
+          {/* Feature 3: Localized for Gombe */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-6 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-amber-100 text-amber-900 text-xs font-bold">
@@ -1602,7 +1551,7 @@ export default function GoHIVLandingPage() {
             </div>
 
             <div className="lg:col-span-6">
-              <div className="p-6 sm:p-8 rounded-3xl bg-white border-2 border-slate-200/90 shadow-xl space-y-5">
+              <div className="p-6 sm:p-8 rounded-[32px] bg-white border-2 border-slate-200/90 shadow-xl space-y-5">
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-sm">
@@ -1681,11 +1630,11 @@ export default function GoHIVLandingPage() {
       ========================================================================= */}
       <section
         id="pilot-program"
-        className="py-24 bg-gradient-to-b from-[#071329] via-[#0D2040] to-[#091730] text-white relative overflow-hidden"
+        className="py-24 bg-gradient-to-b from-[#050D1A] via-[#091830] to-[#061020] text-white relative overflow-hidden"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
           <div className="max-w-3xl mx-auto text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-800/60 border border-blue-400/30 text-amber-300 text-xs sm:text-sm font-bold tracking-wide">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-900/60 border border-blue-400/30 text-amber-300 text-xs sm:text-sm font-bold tracking-wide">
               <Sparkles className="w-4 h-4" />
               Strategic Implementation Target: 2027
             </div>
@@ -1700,7 +1649,7 @@ export default function GoHIVLandingPage() {
 
           {/* 4 Key Metrics We Will Track */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 rounded-3xl bg-blue-900/40 border border-blue-700/50 hover:border-amber-400/60 transition-all flex flex-col justify-between">
+            <div className="p-6 rounded-[28px] bg-blue-950/60 border border-blue-700/50 hover:border-amber-400/60 transition-all flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="w-10 h-10 rounded-xl bg-blue-800 text-amber-400 flex items-center justify-center font-bold">
                   01
@@ -1713,12 +1662,12 @@ export default function GoHIVLandingPage() {
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-blue-800/80">
-                <span className="text-2xl font-black text-amber-300">5,000+</span>
+                <span className="text-3xl font-black text-amber-300">5,000+</span>
                 <span className="text-xs text-blue-200 block">Enrolled Pilot Cohort</span>
               </div>
             </div>
 
-            <div className="p-6 rounded-3xl bg-blue-900/40 border border-blue-700/50 hover:border-amber-400/60 transition-all flex flex-col justify-between">
+            <div className="p-6 rounded-[28px] bg-blue-950/60 border border-blue-700/50 hover:border-amber-400/60 transition-all flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="w-10 h-10 rounded-xl bg-blue-800 text-emerald-400 flex items-center justify-center font-bold">
                   02
@@ -1731,12 +1680,12 @@ export default function GoHIVLandingPage() {
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-blue-800/80">
-                <span className="text-2xl font-black text-emerald-400">&gt; 90%</span>
+                <span className="text-3xl font-black text-emerald-400">&gt; 90%</span>
                 <span className="text-xs text-blue-200 block">48-Hour Facility Linkage</span>
               </div>
             </div>
 
-            <div className="p-6 rounded-3xl bg-blue-900/40 border border-blue-700/50 hover:border-amber-400/60 transition-all flex flex-col justify-between">
+            <div className="p-6 rounded-[28px] bg-blue-950/60 border border-blue-700/50 hover:border-amber-400/60 transition-all flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="w-10 h-10 rounded-xl bg-blue-800 text-sky-400 flex items-center justify-center font-bold">
                   03
@@ -1749,12 +1698,12 @@ export default function GoHIVLandingPage() {
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-blue-800/80">
-                <span className="text-2xl font-black text-sky-300">95%</span>
+                <span className="text-3xl font-black text-sky-300">95%</span>
                 <span className="text-xs text-blue-200 block">6-Month Undetectable Load</span>
               </div>
             </div>
 
-            <div className="p-6 rounded-3xl bg-blue-900/40 border border-blue-700/50 hover:border-amber-400/60 transition-all flex flex-col justify-between">
+            <div className="p-6 rounded-[28px] bg-blue-950/60 border border-blue-700/50 hover:border-amber-400/60 transition-all flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="w-10 h-10 rounded-xl bg-blue-800 text-orange-400 flex items-center justify-center font-bold">
                   04
@@ -1767,20 +1716,20 @@ export default function GoHIVLandingPage() {
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-blue-800/80">
-                <span className="text-2xl font-black text-orange-400">98%</span>
+                <span className="text-3xl font-black text-orange-400">98%</span>
                 <span className="text-xs text-blue-200 block">Paediatric Cohort Retention</span>
               </div>
             </div>
           </div>
 
-          {/* Interactive Pilot Impact Calculator Slider */}
-          <div className="p-8 rounded-3xl bg-blue-950/90 border border-blue-700/80 shadow-2xl space-y-6">
+          {/* Interactive Pilot Scale Slider */}
+          <div className="p-8 sm:p-10 rounded-[32px] bg-blue-950/90 border border-blue-700/80 shadow-2xl space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
                   Interactive Projection Model
                 </span>
-                <h3 className="text-2xl font-bold text-white mt-1">
+                <h3 className="text-2xl font-black text-white mt-1">
                   Pilot Scale &amp; State Impact Calculator
                 </h3>
               </div>
@@ -1792,7 +1741,6 @@ export default function GoHIVLandingPage() {
               </div>
             </div>
 
-            {/* Slider */}
             <div>
               <input
                 type="range"
@@ -1801,7 +1749,7 @@ export default function GoHIVLandingPage() {
                 step="500"
                 value={pilotUserScale}
                 onChange={(e) => setPilotUserScale(Number(e.target.value))}
-                className="w-full accent-amber-400 h-2 bg-blue-800 rounded-lg cursor-pointer"
+                className="w-full accent-amber-400 h-2.5 bg-blue-900 rounded-lg cursor-pointer"
               />
               <div className="flex justify-between text-xs text-blue-300 mt-2 font-mono">
                 <span>1,000 Users (Ward Level)</span>
@@ -1810,30 +1758,29 @@ export default function GoHIVLandingPage() {
               </div>
             </div>
 
-            {/* Reactive Output Numbers */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
-              <div className="p-4 rounded-2xl bg-blue-900/50 border border-blue-800">
+              <div className="p-4 rounded-2xl bg-blue-900/40 border border-blue-800">
                 <p className="text-xs text-blue-300">Projected Linkages:</p>
                 <p className="text-xl font-bold text-white font-mono mt-1">
                   +{Math.floor(pilotUserScale * 0.91).toLocaleString()} Patients
                 </p>
                 <p className="text-[10px] text-emerald-400 mt-0.5">Linked to care in 48h</p>
               </div>
-              <div className="p-4 rounded-2xl bg-blue-900/50 border border-blue-800">
+              <div className="p-4 rounded-2xl bg-blue-900/40 border border-blue-800">
                 <p className="text-xs text-blue-300">Daily Adherence SMS:</p>
                 <p className="text-xl font-bold text-white font-mono mt-1">
                   {(pilotUserScale * 30).toLocaleString()} /mo
                 </p>
                 <p className="text-[10px] text-amber-400 mt-0.5">Zero-airtime prompts</p>
               </div>
-              <div className="p-4 rounded-2xl bg-blue-900/50 border border-blue-800">
+              <div className="p-4 rounded-2xl bg-blue-900/40 border border-blue-800">
                 <p className="text-xs text-blue-300">Paediatric Retention:</p>
                 <p className="text-xl font-bold text-white font-mono mt-1">
                   {Math.floor(pilotUserScale * 0.18).toLocaleString()} Children
                 </p>
                 <p className="text-[10px] text-sky-400 mt-0.5">Under Caregiver Mode</p>
               </div>
-              <div className="p-4 rounded-2xl bg-blue-900/50 border border-blue-800">
+              <div className="p-4 rounded-2xl bg-blue-900/40 border border-blue-800">
                 <p className="text-xs text-blue-300">Viral Load Target:</p>
                 <p className="text-xl font-bold text-white font-mono mt-1">95.4%</p>
                 <p className="text-[10px] text-emerald-400 mt-0.5">UNAIDS 95-95-95 aligned</p>
@@ -1842,7 +1789,7 @@ export default function GoHIVLandingPage() {
           </div>
 
           {/* Interactive Gombe State 11 LGAs Deployment Selector */}
-          <div className="p-8 rounded-3xl bg-blue-950/70 border border-blue-800/80 text-white">
+          <div className="p-8 sm:p-10 rounded-[32px] bg-blue-950/70 border border-blue-800/80 text-white">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
                 <h4 className="text-xl font-bold text-white flex items-center gap-2">
@@ -1859,7 +1806,6 @@ export default function GoHIVLandingPage() {
               </span>
             </div>
 
-            {/* LGA Pill buttons */}
             <div className="flex flex-wrap gap-2">
               {GOMBE_LGA_KEYS.map((lga) => (
                 <button
@@ -1880,7 +1826,6 @@ export default function GoHIVLandingPage() {
               ))}
             </div>
 
-            {/* Active LGA Interactive Profile Box */}
             <div className="mt-6 p-6 rounded-2xl bg-blue-900/40 border border-blue-800 flex flex-col md:flex-row justify-between gap-6">
               <div className="space-y-3 max-w-xl">
                 <div>
@@ -1942,7 +1887,7 @@ export default function GoHIVLandingPage() {
       ========================================================================= */}
       <footer id="contact" className="bg-white border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -translate-y-12">
-          <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white shadow-2xl border border-blue-800 relative overflow-hidden">
+          <div className="p-8 sm:p-12 rounded-[36px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white shadow-2xl border border-blue-800 relative overflow-hidden">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
               <div className="lg:col-span-8 space-y-4">
                 <span className="text-xs font-bold uppercase tracking-widest text-amber-300 bg-blue-900/80 px-3 py-1 rounded-full border border-blue-700">
@@ -1957,7 +1902,7 @@ export default function GoHIVLandingPage() {
                 </p>
 
                 <div className="pt-2 flex flex-wrap items-center gap-4 text-xs sm:text-sm">
-                  <div className="flex items-center gap-2 bg-blue-900/70 border border-blue-700/80 rounded-xl px-3.5 py-2">
+                  <div className="flex items-center gap-2 bg-blue-900/70 border border-blue-700/80 rounded-2xl px-4 py-2.5">
                     <Mail className="w-4 h-4 text-amber-400" />
                     <a
                       href="mailto:alphaspark.ng@gmail.com"
@@ -1979,7 +1924,7 @@ export default function GoHIVLandingPage() {
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-2 bg-blue-900/70 border border-blue-700/80 rounded-xl px-3.5 py-2">
+                  <div className="flex items-center gap-2 bg-blue-900/70 border border-blue-700/80 rounded-2xl px-4 py-2.5">
                     <Phone className="w-4 h-4 text-emerald-400" />
                     <a href="tel:09075444148" className="font-mono font-medium text-white hover:underline">
                       09075444148
@@ -2004,14 +1949,14 @@ export default function GoHIVLandingPage() {
                 <button
                   type="button"
                   onClick={() => setIsDemoModalOpen(true)}
-                  className="w-full inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-base text-white bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 shadow-xl shadow-orange-600/30 transition-all text-center"
+                  className="w-full inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl font-bold text-base text-white bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 shadow-xl shadow-orange-600/30 transition-all text-center"
                 >
                   <Send className="w-4 h-4" />
                   <span>Get in Touch</span>
                 </button>
                 <a
                   href="tel:09075444148"
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-blue-200 hover:text-white bg-blue-900/50 hover:bg-blue-900 border border-blue-700/60 transition-all text-center"
+                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold text-sm text-blue-200 hover:text-white bg-blue-900/50 hover:bg-blue-900 border border-blue-700/60 transition-all text-center"
                 >
                   <Phone className="w-4 h-4" />
                   <span>Call 09075444148</span>
@@ -2021,12 +1966,12 @@ export default function GoHIVLandingPage() {
           </div>
         </div>
 
-        {/* Bottom Detailed Footer */}
+        {/* Footer info */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-slate-200">
             <div className="space-y-4 md:col-span-1">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-900 text-white flex items-center justify-center shadow-xs">
+                <div className="w-8 h-8 rounded-xl bg-blue-900 text-white flex items-center justify-center shadow-xs">
                   <HeartPulse className="w-5 h-5 text-amber-400" />
                 </div>
                 <span className="text-xl font-black text-blue-950">
@@ -2090,7 +2035,7 @@ export default function GoHIVLandingPage() {
       ========================================================================= */}
       {isDemoModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200"
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
